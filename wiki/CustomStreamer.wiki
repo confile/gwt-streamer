@@ -1,10 +1,8 @@
 #summary Creating custom streamers.
 
-= Introduction =
+= Creating custom streamers =
 
 If you need to add serialization of custom type that does not implement `Streamable` interface you may define your own streamer class.
-
-= Details =
 
 Create class that extends `Streamer` and redefine `readObject()` and `writeObject()` methods to serialize object in your own manner.
 
