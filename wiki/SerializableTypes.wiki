@@ -9,5 +9,7 @@
 ||Java basic types||`java.lang.String, java.util.Date, java.math.BigInteger, java.math.BigDecimal`||
 ||Arrays of objects||`java.lang.Object[], java.lang.String[]`||
 ||Streamable classes||instances of `com.nkdata.gwt.streamer.client.Streamable`||
+||Collections||`java.util.ArrayList, java.util.LinkedList, java.util.HashSet, java.util.LinkedHashSet, java.util.TreeSet, java.util.Vector`||
+||Maps||`java.util.HashMap, java.util.IdentityHashMap, java.util.LinkedHashMap, java.util.TreeMap`||
 ||Multidimensional arrays||only as a field of `Streamable` class||
 ||Enums||only as a field of `Streamable` class||
