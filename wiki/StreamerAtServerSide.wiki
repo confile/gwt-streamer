@@ -1,11 +1,11 @@
 #summary Using Streamer at server side.
 
-= Details =
+= Using Streamer at server side =
 
-A Streamer.get() method uses lazy initialization of type streamers which is not thread-safe and sometimes may cause concurrent problems in a multithreaded server environment. To avoid this the library must be initialized during server bootstrap by calling Streamer.get(). There are several ways to do this:
-  * If you write your own servlet simply add Streamer.get() to servlet constructor or initialization part.
-  * If you use third-party servlet you may register a servlet listener that calls Streamer.get() during an application startup.
-web.xml
+A `Streamer.get()` method uses lazy initialization of type streamers which is not thread-safe and sometimes may cause concurrent problems in a multithreaded server environment. To avoid this the library must be initialized during server bootstrap by calling `Streamer.get()`. There are several ways to do this:
+  * If you write your own servlet simply add `Streamer.get()` to servlet constructor or initialization part.
+  * If you use third-party servlet you may register a servlet listener that calls `Streamer.get()` during an application startup.
+`web.xml`
 {{{
 <web-app>
    ...
@@ -15,7 +15,7 @@ web.xml
    ...
 </web-app>
 }}}
-GWTStreamerInitializer.java
+`GWTStreamerInitializer.java`
 {{{
 public class GWTStreamerInitializer implements ServletContextListener {
     @Override    
@@ -24,11 +24,11 @@ public class GWTStreamerInitializer implements ServletContextListener {
     }
 }
 }}}
-  * In IoC container like Spring use an instance of Streamer created by StreamerFactory class. First register com.nkdata.gwt.streamer.StreamerFactory class as singleton factory for Streamer class.
-applicationContext.xml
+  * In IoC container like Spring use an instance of `Streamer` created by `StreamerFactory` class. First register `com.nkdata.gwt.streamer.client.StreamerFactory` class as singleton factory for `Streamer` class.
+`applicationContext.xml`
 {{{
 ...
-<bean id="streamerFactory" class="com.nkdata.gwt.streamer.StreamerFactory"/>
+<bean id="streamerFactory" class="com.nkdata.gwt.streamer.client.StreamerFactory"/>
 <bean id="streamer" factory-bean="streamerFactory" factory-method="getInstance"/>
 ...
 }}}
