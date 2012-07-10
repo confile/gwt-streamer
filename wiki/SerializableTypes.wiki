@@ -4,7 +4,7 @@
 
 || *Types* || *Classes* ||
 ||Primitive types||`int, byte, short, long, double, float, char, boolean`||
-||Wrapper types||`Integer, Byte, Short, Long, Double, Float, Character, Boolean`||
+||Wrapper types||`java.lang.Integer, java.lang.Byte, java.lang.Short, java.lang.Long, java.lang.Double, java.lang.Float, java.lang.Character, java.lang.Boolean`||
 ||Arrays of primitives||`int[], byte[], short[], long[], double[], float[], char[], boolean[]`||
 ||Java basic types||`java.lang.String, java.util.Date, java.math.BigInteger, java.math.BigDecimal`||
 ||Arrays of objects||`java.lang.Object[], java.lang.String[]`||
