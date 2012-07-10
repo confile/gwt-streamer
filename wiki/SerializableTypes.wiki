@@ -1,0 +1,13 @@
+#summary Full list of serializable types.
+
+= Full list of serializable types =
+
+|| *Name* || *Types* ||
+||Primitive types||`int, byte, short, long, double, float, char, boolean`||
+||Wrapper types||`Integer, Byte, Short, Long, Double, Float, Character, Boolean`||
+||Arrays of primitives||`int[], byte[], short[], long[], double[], float[], char[], boolean[]`||
+||Java basic types||`java.lang.String, java.util.Date, java.math.BigInteger, java.math.BigDecimal`||
+||Arrays of objects||`java.lang.Object[], java.lang.String[]`||
+||Streamable classes||instances of `com.nkdata.gwt.streamer.client.Streamable`||
+||Multidimensional arrays||only as a field of `Streamable` class||
+||Enums||only as a field of `Streamable` class||
