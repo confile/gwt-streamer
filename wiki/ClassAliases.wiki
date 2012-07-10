@@ -2,7 +2,7 @@
 
 = Introduction =
 
-GWT Streamer uses a highly optimized data format where every fully qualified class name is specified only once during object graph serialization. To reduce the length of serialized code it is possible to assign internal short names to your classes. In serialized code class names will ocupy 4-5 characters instead of fully qualified class name.
+GWT Streamer uses a highly optimized data format. Every fully qualified class name writed only once during serialization of object graph. To reduce the length of serialized code it is possible to assign internal short names to your classes. The fully qualified class name will be replaced with short ID of 4-5 characters.
 {{{
 ...
 Streamer.createAlias( MyClass.class );
