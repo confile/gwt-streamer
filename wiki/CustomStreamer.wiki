@@ -4,7 +4,7 @@
 
 If you need to add serialization of custom type that does not implement `Streamable` interface you may define your own streamer class.
 
-Create class that extends `Streamer` and redefine `readObject()` and `writeObject()` methods to serialize object in your own manner.
+Create a class that extends `Streamer` and redefine `readObject()` and `writeObject()` methods to serialize object in your own manner.
 {{{
 public class MyCustomStreamer extends Streamer {
     @Override
@@ -12,7 +12,7 @@ public class MyCustomStreamer extends Streamer {
         // save object identity to avoid reference duplication within the same graph
         ctx.addRef( obj );
         // write object fields
-        MyObject mo = (Object) obj;
+        MyObject mo = (MyObject) obj;
         out.writeInt( mo.intField );
         out.writeString( mo.stringField );
         get().writeObject( mo.objectField, ctx, out );
@@ -33,15 +33,15 @@ public class MyCustomStreamer extends Streamer {
     }
 }
 }}}
-To use new streamer you must register it somewhere in the initialization part of the application:
+To use new streamer you must register it somewhere in the initialization part of your application:
 {{{
 ...
 Streamer.registerStreamer( MyObject.class, new MyCustomStreamer() );
 ...
 }}}
-*Note!* You must also register the same serializer at server side.
+*Note!* You must also register the same streamer at server side!
 
-You may also extend one of predefined implementation of streamers:
+You may also extend one of predefined implementations of streamers:
   * `ArrayStreamer` for arrays
   * `CollectionStreamer` for collections
   * `EnumStreamer` for custom enums
