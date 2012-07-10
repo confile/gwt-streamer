@@ -32,7 +32,7 @@ public class GWTStreamerInitializer implements ServletContextListener {
 <bean id="streamer" factory-bean="streamerFactory" factory-method="getInstance"/>
 ...
 }}}
-Then use injection of Streamer instance instead of static call Streamer.get().
+Then use injection of `Streamer` instance instead of static call to `Streamer.get()`.
 {{{
 @Inject
 private Streamer streamer;
