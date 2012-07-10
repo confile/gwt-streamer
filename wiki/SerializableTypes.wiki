@@ -5,8 +5,8 @@
 || *Types* || *Classes* ||
 ||Primitive types||`int, byte, short, long, double, float, char, boolean`||
 ||Wrapper types||`java.lang.Integer, java.lang.Byte, java.lang.Short, java.lang.Long, java.lang.Double, java.lang.Float, java.lang.Character, java.lang.Boolean`||
-||Arrays of primitives||`int[], byte[], short[], long[], double[], float[], char[], boolean[]`||
 ||Java basic types||`java.lang.String, java.util.Date, java.math.BigInteger, java.math.BigDecimal`||
+||Arrays of primitives||`int[], byte[], short[], long[], double[], float[], char[], boolean[]`||
 ||Arrays of objects||`java.lang.Object[], java.lang.String[]`||
 ||Streamable classes||instances of `com.nkdata.gwt.streamer.client.Streamable` and their subclasses||
 ||Collections||`java.util.ArrayList, java.util.LinkedList, java.util.HashSet, java.util.LinkedHashSet, java.util.TreeSet, java.util.Vector`||
