@@ -1,0 +1,23 @@
+#summary Using Streamer at server side.
+
+= Introduction =
+
+A Streamer.get() method uses lazy initialization of type streamers which is not thread-safe and sometimes may cause concurrent problems in a multithreaded server environment. To avoid this the library must be initialized during server bootstrap by calling Streamer.get(). There are several ways to do this:
+  * Add Streamer.get() to main servlet constructor or initialization part.
+  * Register a servlet listener which calls Streamer.get() on servlet startup.
+  * In IoC container like Spring use an instance of Streamer created by StreamerFactory class. First register com.nkdata.gwt.streamer.StreamerFactory class as singleton factory for Streamer class. Then use injection of Streamer class instead of static call Streamer.get().
+
+Sample Spring configuration:
+{{{
+...
+<bean id="streamerFactory" class="com.nkdata.gwt.streamer.StreamerFactory"/>
+<bean id="streamer" factory-bean="streamerFactory" factory-method="getInstance"/>
+...
+}}}
+  * Guice can map interface directly to singleton instance:
+Sample Guice configuration:
+{{{
+...
+bind(Streamer.class).toInstance(Streamer.get());
+...
+}}}
