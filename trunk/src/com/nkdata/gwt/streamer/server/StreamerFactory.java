@@ -1,8 +1,11 @@
-package com.nkdata.gwt.streamer.client;
+package com.nkdata.gwt.streamer.server;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
+
+import com.nkdata.gwt.streamer.client.Streamer;
+import com.nkdata.gwt.streamer.client.StreamerException;
 
 /**
  * This class provides a thread-safe IoC-friendly factory wrapper for Streamer object.
