@@ -24,7 +24,7 @@ public class GWTStreamerInitializer implements ServletContextListener {
     }
 }
 }}}
-  * In IoC container like Spring use an instance of `Streamer` created by `StreamerFactory` class. First register `com.nkdata.gwt.streamer.client.StreamerFactory` class as singleton factory for `Streamer` class.
+  * In IoC container like Spring use an instance of `Streamer` created by `StreamerFactory` class. First register `com.nkdata.gwt.streamer.server.StreamerFactory` class as singleton factory for `Streamer` class.
 `applicationContext.xml`
 {{{
 ...
