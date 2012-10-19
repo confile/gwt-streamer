@@ -28,7 +28,7 @@ public class GWTStreamerInitializer implements ServletContextListener {
 `applicationContext.xml`
 {{{
 ...
-<bean id="streamerFactory" class="com.nkdata.gwt.streamer.client.StreamerFactory"/>
+<bean id="streamerFactory" class="com.nkdata.gwt.streamer.server.StreamerFactory"/>
 <bean id="streamer" factory-bean="streamerFactory" factory-method="getInstance"/>
 ...
 }}}
