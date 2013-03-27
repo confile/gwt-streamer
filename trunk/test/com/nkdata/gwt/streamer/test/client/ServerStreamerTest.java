@@ -10,11 +10,13 @@ import junit.framework.TestCase;
 import com.nkdata.gwt.streamer.client.Streamer;
 import com.nkdata.gwt.streamer.test.client.shared.BasicArrayTypes;
 import com.nkdata.gwt.streamer.test.client.shared.BasicTypes;
+import com.nkdata.gwt.streamer.test.client.shared.ChildBean;
 import com.nkdata.gwt.streamer.test.client.shared.Enums;
 import com.nkdata.gwt.streamer.test.client.shared.ExtSimpleBean;
 import com.nkdata.gwt.streamer.test.client.shared.MultiArray;
 import com.nkdata.gwt.streamer.test.client.shared.MyEvent1;
 import com.nkdata.gwt.streamer.test.client.shared.Node;
+import com.nkdata.gwt.streamer.test.client.shared.ParentBean;
 import com.nkdata.gwt.streamer.test.client.shared.SerBean;
 import com.nkdata.gwt.streamer.test.client.shared.SimpleBean;
 import com.nkdata.gwt.streamer.test.client.shared.TransientBean;
@@ -192,7 +194,9 @@ public class ServerStreamerTest extends TestCase
 		t.fShort = 1235;
 		t.fLong = System.currentTimeMillis();
 		t.fDouble = 0.123542467;
-		t.fFloat = 0.346234346f;
+		// WARNING! As JavaScript only supports 64-bit floating points the result of de-serialization
+		// may differ. Use /2^n values to generate same results on server and client side.
+		t.fFloat = 0.75f;
 		t.fChar = 'A';
 		t.fString = "Test String";
 		t.fBigInt = new BigInteger( "21346475684524464575684543234645768454575" );
@@ -210,7 +214,9 @@ public class ServerStreamerTest extends TestCase
 		t.aShort = new short[] { 432,2345,2345,231,423,5345,324,2345,32,3245 };
 		t.aLong = new long[] { 2,345,346,2346,456,-756746864,568846845,3457345 };
 		t.aDouble = new double[] { 0.23423, 213.23, 23512.2 };
-		t.aFloat = new float[] { 0.2f, 0.25f };
+		// WARNING! As JavaScript only supports 64-bit floating points the result of de-serialization
+		// may differ. Use /2^n values to generate same results on server and client side.
+		t.aFloat = new float[] { 0.5f, 0.25f };
 		t.aChar = "TEST CHAR".toCharArray();
 		t.aString = new String[] { "Test String", "sadf", "sadfasdf" };
 		checkSer( t );
@@ -259,5 +265,20 @@ public class ServerStreamerTest extends TestCase
 				{ new SimpleBean( 4, "D" ), new SimpleBean( 5, "E" ) } };
 		t.c = new Enums.Month[][] { { Month.APR, Month.AUG, Month.FEB }, { Month.MAR }, {}, { Month.NOV, Month.NOV } };
 		checkSer(t);
+	}
+	
+	
+	/**
+	 * Issue 2 BUG
+	 */
+	public void testRecursiveStructures()
+	{
+		ParentBean parent = new ParentBean();
+		parent.setName( "parent" );
+		ChildBean child = new ChildBean();
+		child.setName( "child" );
+		parent.setChild(child);
+		child.setParent(parent);
+		checkSer( parent );
 	}
 }
