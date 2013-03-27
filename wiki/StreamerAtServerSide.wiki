@@ -3,8 +3,17 @@
 = Using Streamer at server side =
 
 A `Streamer.get()` method uses lazy initialization of streamers. It is thread-safe and can be used in multithreaded server environment.
-However if you are using [CustomStreamer custom streamers] or [ClassAlias class aliases] you must to register them before you start using serialization. The registration code is not thread-safe and must be called only once during server startup. There are several ways to do this:
+However if you are using [CustomStreamer custom streamers] or [ClassAliases class aliases] you must to register them before you start using serialization. The registration code is not thread-safe and must be called only once during server startup. There are several ways to do this:
   * If you write your own servlet simply add a static block with your registration code to servlet class.
+{{{
+public class MyServlet extends HttpServlet {
+    static {
+        Streamer.registerStreamer( MyClass.class, new MyClassStreamer() );
+        Streamer.createAlias( MyClass.class );
+    }
+    ...
+}
+}}}
   * If you use third-party servlet you may register a servlet listener that performs static registration during web application startup.
 `web.xml`
 {{{
@@ -76,4 +85,18 @@ public class MyConfiguration {
         Streamer.createAlias( MyClass.class );
     }
 }
+}}}
+  * In JEE6 container you may inject configured singleton instance of Streamer using CDI:
+{{{
+...
+@Produces @ApplicationScoped
+public Streamer getStreamer() {
+    Streamer.registerStreamer( MyClass.class, new MyClassStreamer() );
+    Streamer.createAlias( MyClass.class );
+    return Streamer.get();
+}
+...
+@Inject
+private Streamer streamer;
+...
 }}}
