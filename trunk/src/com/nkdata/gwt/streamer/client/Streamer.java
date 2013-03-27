@@ -210,10 +210,6 @@ public abstract class Streamer
 	*/
 	
 	
-	/** Root streamer */
-	private static Streamer streamer;
-	
-	
 	/** Stream factory is responsible to create Reader and Writer */
 	//public static StreamFactory streamFactory = new Base64StreamFactory();
 	//public static StreamFactory streamFactory = new PrintableStreamFactory();
@@ -223,11 +219,7 @@ public abstract class Streamer
 	/** Get root streamer. Lazy init */
 	public static Streamer get()
 	{
-		if ( streamer == null ) {
-			streamer = StreamerInternal.createRootStreamer();
-		}
-		
-		return streamer;
+		return StreamerInternal.getRootStreamer();
 	}
 	
 	

@@ -5,15 +5,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.nkdata.gwt.streamer.client.Streamable;
 import com.nkdata.gwt.streamer.client.Streamer;
@@ -28,18 +26,20 @@ import com.nkdata.gwt.streamer.client.std.StructStreamer;
  */
 public class StreamerInternal
 {
-	private static Map<String,Streamer> streamers = new HashMap<String, Streamer>();
+	private static Streamer rootStreamer = new Streamer() {};
+	private static ConcurrentHashMap<String,Streamer> streamers = new ConcurrentHashMap<String, Streamer>();
 	
-	public static Streamer createRootStreamer() {
-		return new Streamer() {};
+	public static Streamer getRootStreamer() {
+		return rootStreamer;
 	}
 	
 	/**
 	 * Dynamically creates streamers for unknown types.
+	 * 
 	 * @param className
 	 * @return
 	 */
-	public synchronized static Streamer createStreamerFor( String className )
+	public static Streamer createStreamerFor( String className )
 	{
 		Streamer st = streamers.get( className );
 		
@@ -74,8 +74,8 @@ public class StreamerInternal
 			st = createStructStreamerFor( clazz );
 		}
 		
-		streamers.put( className , st );
-		return st;
+		Streamer st1 = streamers.putIfAbsent( className , st );
+		return st1 != null ? st1 : st;
 	}
 		
 	

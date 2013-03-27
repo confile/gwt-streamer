@@ -23,8 +23,10 @@ import com.nkdata.gwt.streamer.client.StreamerException;
  */
 public class StreamerInternal
 {
-	public static Streamer createRootStreamer() {
-		return GWT.create( Streamer.class );
+	private static Streamer rootStreamer = GWT.create( Streamer.class );
+	
+	public static Streamer getRootStreamer() {
+		return rootStreamer;
 	}
 	
 	/**
