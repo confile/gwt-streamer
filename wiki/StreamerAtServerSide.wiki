@@ -2,9 +2,10 @@
 
 = Using Streamer at server side =
 
-A `Streamer.get()` method uses lazy initialization of type streamers which is not thread-safe and sometimes may cause concurrent problems in a multithreaded server environment. To avoid this the library must be initialized during server bootstrap by calling `Streamer.get()`. There are several ways to do this:
-  * If you write your own servlet simply add `Streamer.get()` to servlet constructor or initialization part.
-  * If you use third-party servlet you may register a servlet listener that calls `Streamer.get()` during an application startup.
+A `Streamer.get()` method uses lazy initialization of streamers. It is thread-safe and can be used in multithreaded server environment.
+However if you are using custom streamers or class aliases you must to register them before you start using serialization. The registration code is not thread-safe and must be called only once during server startup. There are several ways to do this:
+  * If you write your own servlet simply add a static block with your registration code to servlet class.
+  * If you use third-party servlet you may register a servlet listener that performs static registration during web application startup.
 `web.xml`
 {{{
 <web-app>
@@ -18,33 +19,61 @@ A `Streamer.get()` method uses lazy initialization of type streamers which is no
 `GWTStreamerInitializer.java`
 {{{
 public class GWTStreamerInitializer implements ServletContextListener {
-    @Override    
-    public void contextInitialized(ServletContextEvent sce) {
-        Streamer.get();
+    static {
+        Streamer.registerStreamer( MyClass.class, new MyClassStreamer() );
+        Streamer.createAlias( MyClass.class );
     }
+    @Override    
+    public void contextInitialized(ServletContextEvent sce) {}
 }
 }}}
-  * In IoC container like Spring use an instance of `Streamer` created by `StreamerFactory` class. First register `com.nkdata.gwt.streamer.server.StreamerFactory` class as singleton factory for `Streamer` class.
+  * In IoC container like Spring you may acquire configured singleton instance of `Streamer` created by `StreamerFactory` class. First register `com.nkdata.gwt.streamer.server.StreamerFactory` class as singleton factory for `Streamer` class.
 `applicationContext.xml`
 {{{
 ...
-<bean id="streamerFactory" class="com.nkdata.gwt.streamer.server.StreamerFactory"/>
+<bean id="streamerFactory" class="com.nkdata.gwt.streamer.server.StreamerFactory" singleton="true">
+    <constructor-arg>
+        <list>
+            <value>MyClass.class</value>
+        </list>
+    </constructor-arg>
+    <constructor-arg>
+        <props>
+            <prop key="MyClass">MyClassStreamer</prop>
+        </props>
+    </constructor-arg>
+</bean>
 <bean id="streamer" factory-bean="streamerFactory" factory-method="getInstance"/>
 ...
 }}}
 Then use injection of `Streamer` instance instead of static call to `Streamer.get()`.
 {{{
-@Inject
+@Autowired
 private Streamer streamer;
 ...
 MyObject myObject = ...
 String buf = streamer.toString( myObject );
 ...
 }}}
-  * Guice can map interface directly to singleton instance:
-Sample Guice configuration:
+If you use annotation-driven configuration you may create a singleton instance of Streamer bean using @Bean annotation:
 {{{
-...
-bind(Streamer.class).toInstance(Streamer.get());
-...
+@Configuration
+public class MyConfiguration {
+    @Bean(scope=DefaultScopes.SINGLETON)
+    public Streamer configureStreamer() {
+        Streamer.registerStreamer( MyClass.class, new MyClassStreamer() );
+        Streamer.createAlias( MyClass.class );
+        return Streamer.get();
+    }
+}
+}}}
+Alternatively you may simply add a registration code as static block to your context configuration and continue using `Streamer.get()` in your code:
+{{{
+@Configuration
+public class MyConfiguration {
+    static {
+        Streamer.registerStreamer( MyClass.class, new MyClassStreamer() );
+        Streamer.createAlias( MyClass.class );
+    }
+}
 }}}
