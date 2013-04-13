@@ -29,6 +29,10 @@ public class StreamerInternal
 	private static Streamer rootStreamer = new Streamer() {};
 	private static ConcurrentHashMap<String,Streamer> streamers = new ConcurrentHashMap<String, Streamer>();
 	
+	/** ConcurrentHashMap does not allows NULL values */
+	private final static Streamer NULL = new Streamer() {};
+
+	
 	public static Streamer getRootStreamer() {
 		return rootStreamer;
 	}
@@ -44,20 +48,20 @@ public class StreamerInternal
 		Streamer st = streamers.get( className );
 		
 		if ( st != null )
-			return st;
+			return st == NULL ? null : st;
 		
 		final Class<?> clazz;
 		
 		try {
 			clazz = Class.forName( className );
 		} catch ( Exception ex ) {
-			return null;
+			//return null;
+			throw new StreamerException( "Class not found: "+className, ex );
 		}
 		
 		if ( clazz.isInterface() )
-			return null;
-		
-		if ( clazz.isArray() ) {
+			st = null;
+		else  if ( clazz.isArray() ) {
 			// search for base component type
 			/*Class<?> baseType = clazz.getComponentType();
 			
@@ -69,13 +73,21 @@ public class StreamerInternal
 			st = createEnumStreamerFor( clazz );
 		} else {
 			if ( !Streamable.class.isAssignableFrom( clazz ) )
-				return null;
-			
-			st = createStructStreamerFor( clazz );
+				st = null;
+			else
+				st = createStructStreamerFor( clazz );
 		}
 		
+		if ( st == null )
+			st = NULL;
+		
 		Streamer st1 = streamers.putIfAbsent( className , st );
-		return st1 != null ? st1 : st;
+		
+		// we already have streamer in cache: return original value 
+		if ( st1 != null )
+			st = st1;
+		
+		return st == NULL ? null : st;
 	}
 		
 	
