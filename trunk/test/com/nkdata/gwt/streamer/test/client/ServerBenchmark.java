@@ -25,7 +25,7 @@ public class ServerBenchmark extends TestCase {
 	public void testTask() throws Exception
 	{
 		log( "Preparing test..." );
-		Benchmark bench = new Benchmark( 18 );
+		Benchmark bench = new Benchmark( 15 );
 		log( "    Tree depth: "+bench.getTreeDepth() );
 		log( "    Node count: "+bench.getTreeCreator().getNodeCount() );
 		log( "Executing serialization..." );

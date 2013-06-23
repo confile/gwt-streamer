@@ -18,6 +18,7 @@ import com.google.gwt.core.ext.typeinfo.JArrayType;
 import com.google.gwt.core.ext.typeinfo.JClassType;
 import com.google.gwt.core.ext.typeinfo.JEnumType;
 import com.google.gwt.core.ext.typeinfo.JField;
+import com.google.gwt.core.ext.typeinfo.JParameterizedType;
 import com.google.gwt.core.ext.typeinfo.JPrimitiveType;
 import com.google.gwt.core.ext.typeinfo.JType;
 import com.google.gwt.core.ext.typeinfo.TypeOracle;
@@ -158,6 +159,8 @@ public class StreamerGenerator extends Generator {
         	for ( JField f : fields.values() ) {
         		JArrayType at = f.getType().isArray();
         		JEnumType et = f.getType().isEnum();
+        		JParameterizedType pt = f.getType().isParameterized();
+        		
         		//JClassType ct = f.getType().isClassOrInterface();
         		
         		if ( at != null ) {
@@ -195,6 +198,9 @@ public class StreamerGenerator extends Generator {
         		} else if ( et != null ) {
         			// enum
         			discoveredTypes.add( et );
+        		} else if ( pt != null ) {
+        			// parameterized type (collection)
+        			discoverParameterizedEnums( discoveredTypes, pt );
         		}
         	}
         	
@@ -295,6 +301,22 @@ public class StreamerGenerator extends Generator {
         
         out.commit(logger);
         return packageName + "." + streamerImplClassName;
+    }
+    
+    
+    private void discoverParameterizedEnums( Set<JType> discoveredTypes, JParameterizedType type )
+    {
+    	for ( JClassType t : type.getTypeArgs() ) {
+    		JParameterizedType pt = t.isParameterized();
+    		
+    		if ( t.isEnum() != null ) {
+    			discoveredTypes.add( t );
+    		}
+    			
+    		if ( pt != null ) {
+    			discoverParameterizedEnums( discoveredTypes, pt );
+    		}
+    	}
     }
     
     

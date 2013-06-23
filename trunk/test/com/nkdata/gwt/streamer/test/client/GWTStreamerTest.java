@@ -2,8 +2,10 @@ package com.nkdata.gwt.streamer.test.client;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.junit.client.GWTTestCase;
@@ -11,17 +13,23 @@ import com.nkdata.gwt.streamer.client.Streamer;
 import com.nkdata.gwt.streamer.test.client.shared.BasicArrayTypes;
 import com.nkdata.gwt.streamer.test.client.shared.BasicTypes;
 import com.nkdata.gwt.streamer.test.client.shared.ChildBean;
+import com.nkdata.gwt.streamer.test.client.shared.EnumCollections;
+import com.nkdata.gwt.streamer.test.client.shared.EnumCollections.Electronic;
+import com.nkdata.gwt.streamer.test.client.shared.EnumCollections.Music;
+import com.nkdata.gwt.streamer.test.client.shared.EnumCollections.Sex;
 import com.nkdata.gwt.streamer.test.client.shared.Enums;
+import com.nkdata.gwt.streamer.test.client.shared.Enums.Month;
 import com.nkdata.gwt.streamer.test.client.shared.ExtSimpleBean;
 import com.nkdata.gwt.streamer.test.client.shared.MultiArray;
+import com.nkdata.gwt.streamer.test.client.shared.MyClass1;
 import com.nkdata.gwt.streamer.test.client.shared.MyEvent1;
 import com.nkdata.gwt.streamer.test.client.shared.Node;
 import com.nkdata.gwt.streamer.test.client.shared.ParentBean;
+import com.nkdata.gwt.streamer.test.client.shared.PrivateHashMap;
 import com.nkdata.gwt.streamer.test.client.shared.SerBean;
 import com.nkdata.gwt.streamer.test.client.shared.SimpleBean;
 import com.nkdata.gwt.streamer.test.client.shared.TransientBean;
 import com.nkdata.gwt.streamer.test.client.shared.TypedArray;
-import com.nkdata.gwt.streamer.test.client.shared.Enums.Month;
 import com.nkdata.gwt.streamer.test.client.shared.TypedArray.MyEnum;
 
 public class GWTStreamerTest extends GWTTestCase
@@ -281,5 +289,50 @@ public class GWTStreamerTest extends GWTTestCase
 		parent.setChild(child);
 		child.setParent(parent);
 		checkSer( parent );
+	}
+	
+	/**
+	 * Issue ???
+	 */
+	public void testTransientInterface()
+	{
+		MyClass1 c = new MyClass1();
+		c.name = "Test";
+		c.value = 10;
+		checkSer( c );
+		
+		PrivateHashMap hm = new PrivateHashMap();
+		hm.add( "val1", 10 );
+		hm.add( "val2", 20 );
+		hm.add( "val3", 30 );
+		checkSer( hm );
+	}
+
+	/**
+	 * Collections with enum keys of values
+	 */
+	public void testEnumCollections()
+	{
+		EnumCollections e = new EnumCollections();
+		e.connections.add( EnumCollections.State.connecting );
+		e.connections.add( EnumCollections.State.disconnected );
+		
+		e.personSex.put( "John", Sex.male );
+		e.personSex.put( "Mary", Sex.female );
+		e.personSex.put( "Steve", Sex.male );
+		
+		e.music.put( Music.rock, "so-so" );
+		e.music.put( Music.electronic, "ok" );
+		
+		List<Electronic> music = new ArrayList<Electronic>();
+		music.add( Electronic.breaks );
+		music.add( Electronic.dubstep );
+		e.personMusic.put( "Anton", music );
+		
+		List<Electronic> music1 = new ArrayList<Electronic>();
+		music1.add( Electronic.house );
+		e.personMusic.put( "Laura", music1 );
+		
+		checkSer( e );
 	}
 }

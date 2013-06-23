@@ -10,6 +10,7 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -63,8 +64,13 @@ public abstract class Streamer
 	protected final static Map<String,String> classIdMap = new HashMap<String, String>();
 	/** reverse class id -> class name mapping */ 
 	protected final static Map<String,String> idClassMap = new HashMap<String, String>();
-	
+	/** package name hints */
+	protected final static List<String> packages = new ArrayList<String>();
 
+	private static WriteContext initWriteCtx = new WriteContext();
+	private static ReadContext initReadCtx = new ReadContext(); 
+	
+	
 	private static String generateNewClassId()
     {
 		int classNum = classIdMap.size();
@@ -106,6 +112,37 @@ public abstract class Streamer
 	{
 		//registerClass( targetClass );
 		streamerClassMap.put( targetClass.getName(), streamer );
+	}
+	
+	
+	/**
+	 * Add package name to obtain shorter serialized data output for classes of this package and
+	 * all super-packages.
+	 * @param pack package name
+	 */
+	public static void addPackageHint( String pack )
+	{
+		packages.add( pack );
+		initWriteCtx = new WriteContext();
+		initReadCtx = new ReadContext();
+		
+		for ( String packName : packages ) {
+			String[] pp = packName.split( "[\\.\\$]" );
+			StringBuffer sb = new StringBuffer();
+			
+			for ( int i = 0; i < pp.length-1; i++ ) {
+				sb.append( pp[i] );
+				String p = sb.toString();
+				Integer ref = initWriteCtx.getRefIdx( p );
+				
+				if ( ref == null ) {
+					initWriteCtx.addRef( p );
+					initReadCtx.addRef( p );
+				}
+				
+				sb.append( '.' );
+			}
+		}
 	}
 	
 	
@@ -172,6 +209,7 @@ public abstract class Streamer
 		createAlias( IdentityHashMap.class );
 		createAlias( LinkedHashMap.class );
 		createAlias( TreeMap.class );
+		createAlias( Date.class );
 	}
 	
 	
@@ -249,7 +287,7 @@ public abstract class Streamer
 	 */
 	public String toString( final Object obj )
 	{
-		final WriteContext ctx = new WriteContext();
+		final WriteContext ctx = new WriteContext( initWriteCtx );
 		final Writer out = streamFactory.createWriter();
 		get().writeObject( obj, ctx, out );
 		return out.toString();
@@ -263,7 +301,7 @@ public abstract class Streamer
 	 */
 	public Object fromString( final String str ) 
 	{
-		final ReadContext ctx = new ReadContext();
+		final ReadContext ctx = new ReadContext( initReadCtx );
 		final Reader in = streamFactory.createReader( str );
 		return get().readObject( ctx, in );
 	}
@@ -289,7 +327,9 @@ public abstract class Streamer
 	private final static char REF = 'R';			// reference to serialized object
 	private final static char CLASS = 'C';			// full class name
 	private final static char CLASS_ID = 'I';		// short class name
-	private final static char CLASS_REF = 'F';		// reference to serialized class name
+	private final static char CLASS_REF = 'E';		// reference to serialized class name
+	private final static char CLASS_PACK_REF = 'P';	// class with package reference
+	private final static char CLASS_PACK_ARR_REF = 'A';	// array of objects with package reference
 	
 	
 	public void writeObject( final Object obj, final WriteContext ctx, final Writer out )
@@ -317,8 +357,82 @@ public abstract class Streamer
 						out.writeChar( CLASS_REF );
 						out.writeInt( classRefIdx );
 					} else {
-						out.writeChar( CLASS );
-						out.writeString( clazz.getName() );
+						String className = clazz.getName();
+						
+						if ( className.indexOf( '.' ) > 0 ) {
+							// class with package differential references
+							if ( !className.startsWith( "[" ) ) {
+								String[] pp = className.split( "[\\.\\$]" );
+								StringBuffer sb = new StringBuffer();
+								
+								Integer largestPackageRef = null;
+								String largestPackage = "";
+								
+								for ( int i = 0; i < pp.length-1; i++ ) {
+									sb.append( pp[i] );
+									String p = sb.toString();
+									Integer ref = ctx.getRefIdx( p );
+									
+									if ( ref != null ) {
+										largestPackageRef = ref;
+										largestPackage = p;
+									} else
+										ctx.addRef( p );
+									
+									sb.append( '.' );
+								}
+								
+								if ( largestPackageRef != null ) {
+									out.writeChar( CLASS_PACK_REF );
+									out.writeInt( largestPackageRef );
+									String classRest = className.substring( largestPackage.length() );
+									out.writeString( classRest );
+								} else {
+									out.writeChar( CLASS );
+									out.writeString( clazz.getName() );
+								}
+							} else {
+								// array of objects
+								int dim = 1;
+								while ( className.charAt( dim ) == '[' )
+									dim++;
+								String objectClassName = className.substring( dim+1 );
+								String[] pp = objectClassName.split( "[\\.\\$]" );
+								StringBuffer sb = new StringBuffer();
+								
+								Integer largestPackageRef = null;
+								String largestPackage = "";
+								
+								for ( int i = 0; i < pp.length-1; i++ ) {
+									sb.append( pp[i] );
+									String p = sb.toString();
+									Integer ref = ctx.getRefIdx( p );
+									
+									if ( ref != null ) {
+										largestPackageRef = ref;
+										largestPackage = p;
+									} else
+										ctx.addRef( p );
+									
+									sb.append( '.' );
+								}
+								
+								if ( largestPackageRef != null ) {
+									out.writeChar( CLASS_PACK_ARR_REF );
+									out.writeInt( dim );
+									out.writeInt( largestPackageRef );
+									String classRest = objectClassName.substring( largestPackage.length() );
+									out.writeString( classRest );
+								} else {
+									out.writeChar( CLASS );
+									out.writeString( clazz.getName() );
+								}
+							}
+						} else {
+							out.writeChar( CLASS );
+							out.writeString( clazz.getName() );
+						}
+						
 						ctx.addRef( clazz );
 					}
 				} else {
@@ -363,13 +477,75 @@ public abstract class Streamer
 				try {
 					if ( b == CLASS_REF ) {
 						int classRefIdx = in.readInt();
-						className = (String) ctx.getRef( classRefIdx );
+						className = ((String) ctx.getRef( classRefIdx )).substring(1);
 					} else if ( b == CLASS_ID ) {
 						String classId = in.readString();
 						className = idClassMap.get( classId );
+					} else if ( b == CLASS || b == CLASS_PACK_REF ) {
+						String[] pp;
+						int packageLen = 0;
+						
+						if ( b == CLASS ) {
+							className = in.readString();
+							pp = className.split( "[\\.\\$]" );
+						} else {
+							int packRefIdx = in.readInt();
+							String packName = (String) ctx.getRef( packRefIdx );
+							packageLen = packName.length();
+							String restClassName = in.readString();
+							className = packName+restClassName;
+							pp = className.split( "[\\.\\$]" );
+						}
+						
+						if ( !className.startsWith( "[" ) && className.indexOf( '.' ) > 0 ) {
+							StringBuffer sb = new StringBuffer();
+							
+							for ( int i = 0; i < pp.length-1; i++ ) {
+								sb.append( pp[i] );
+								String p = sb.toString();
+								
+								if ( p.length() > packageLen )
+									if ( !ctx.containsRef( p ) )
+										ctx.addRef( p );
+								
+								sb.append( '.' );
+							}
+						}
+						
+						ctx.addRef( "$"+className );
+					} else if ( b == CLASS_PACK_ARR_REF ) {
+						String[] pp;
+						int packageLen = 0;
+						int dim = in.readInt();
+						int packRefIdx = in.readInt();
+						String packName = (String) ctx.getRef( packRefIdx );
+						packageLen = packName.length();
+						String restClassName = in.readString();
+						String objectClassName = packName+restClassName;
+						pp = objectClassName.split( "[\\.\\$]" );
+						
+						if ( !objectClassName.startsWith( "[" ) && objectClassName.indexOf( '.' ) > 0 ) {
+							StringBuffer sb = new StringBuffer();
+							
+							for ( int i = 0; i < pp.length-1; i++ ) {
+								sb.append( pp[i] );
+								String p = sb.toString();
+								
+								if ( p.length() > packageLen )
+									if ( !ctx.containsRef( p ) )
+										ctx.addRef( p );
+								
+								sb.append( '.' );
+							}
+						}
+						
+						StringBuffer sb = new StringBuffer();
+						for ( int i = 0; i < dim; i++ )
+							sb.append( '[' );
+						className = sb.toString()+"L"+objectClassName;
+						ctx.addRef( "$"+className );
 					} else {
-						className = in.readString();
-						ctx.addRef( className );
+						throw new StreamerException( "Parse error" );
 					}
 				} catch ( Exception ex ) {
 					throw new StreamerException( "Parse error", ex );

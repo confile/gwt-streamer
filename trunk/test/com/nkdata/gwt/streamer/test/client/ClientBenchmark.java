@@ -34,6 +34,7 @@ public class ClientBenchmark  extends GWTTestCase {
 		log( "Executing serialization..." );
 		long t = bench.serializeBenchmark();
 		log( "Serialization time: "+t );
+		log( "    Buffer length: "+bench.getBuffer().length() );
 		log( "Executing deserialization..." );
 		t = bench.deserializeBenchmark();
 		log( "Deserialization time: "+t );
