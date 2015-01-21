@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.nkdata</groupId>
+    <groupId>com.googlecode.gwt-streamer</groupId>
     <artifactId>gwt-streamer</artifactId>
     <version>1.1.0-SNAPSHOT</version>
     <name>GWT-Streamer</name>
@@ -27,6 +27,12 @@
             <timezone>UTC+2</timezone>
         </developer>
     </developers>
+
+    <scm>
+        <connection>scm:svn:http://gwt-streamer.googlecode.com/svn/trunk/</connection>
+        <developerConnection>scm:svn:https://gwt-streamer.googlecode.com/svn/trunk/</developerConnection>
+        <url>https://gwt-streamer.googlecode.com/svn/</url>
+    </scm>
 
     <properties>
         <gwtVersion>2.7.0</gwtVersion>
@@ -71,18 +77,20 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
-            <!-- GWT Maven Plugin -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>gwt-maven-plugin</artifactId>
                 <version>${gwtVersion}</version>
-                <!-- Plugin configuration. There are many available options, see
-                  gwt-maven-plugin documentation at codehaus.org -->
                 <configuration>
-                    <!-- Automatic test mode. If not specified a message appears:
-                        Please navigate your browser to this URL -->
                     <mode>htmlunit</mode>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
