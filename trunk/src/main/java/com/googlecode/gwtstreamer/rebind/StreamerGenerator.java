@@ -305,7 +305,7 @@ public class StreamerGenerator extends Generator {
 	        }
         } 
 
-		out.println("StreamerInternal.INITIAL_STREAMERS = Collections.unmodifiableMap(initStreamers)");
+		out.println("StreamerInternal.INITIAL_STREAMERS = Collections.unmodifiableMap(initStreamers);");
 		out.println("applyConfig(new StreamerConfig());");
         out.outdent();
         out.println( "}" );
