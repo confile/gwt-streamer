@@ -18,7 +18,9 @@ import com.google.gwt.core.ext.typeinfo.*;
 import com.google.gwt.user.rebind.ClassSourceFileComposerFactory;
 import com.google.gwt.user.rebind.SourceWriter;
 import com.googlecode.gwtstreamer.client.Streamable;
+import com.googlecode.gwtstreamer.client.StreamerConfig;
 import com.googlecode.gwtstreamer.client.StreamerException;
+import com.googlecode.gwtstreamer.client.impl.StreamerInternal;
 import com.googlecode.gwtstreamer.client.std.ArrayStreamer;
 import com.googlecode.gwtstreamer.client.std.EnumStreamer;
 import com.googlecode.gwtstreamer.client.std.StructStreamer;
@@ -62,6 +64,7 @@ public class StreamerGenerator extends Generator {
 
 		// Java imports
         composerFactory.addImport(java.util.Collection.class.getName());
+		composerFactory.addImport(java.util.Collections.class.getName());
         composerFactory.addImport(java.util.List.class.getName());
         composerFactory.addImport(java.util.ArrayList.class.getName());
         composerFactory.addImport(java.util.LinkedList.class.getName());
@@ -80,6 +83,8 @@ public class StreamerGenerator extends Generator {
         
         composerFactory.addImport(com.google.gwt.core.client.GWT.class.getName());
         composerFactory.addImport(StructStreamer.class.getName());
+		composerFactory.addImport(StreamerInternal.class.getName());
+		composerFactory.addImport(StreamerConfig.class.getName());
         composerFactory.addImport(StreamerException.class.getName());
         composerFactory.addImport(ArrayStreamer.class.getName());
         composerFactory.addImport(EnumStreamer.class.getName());
@@ -115,6 +120,7 @@ public class StreamerGenerator extends Generator {
         //int classIdNum = 0;
         out.println( "static {" );
         out.indent();
+		out.println( "Map<String,Streamer> initStreamers = new HashMap<String,Streamer>();" );
         
         
         // types discovered during generation (arrays, enums)
@@ -205,7 +211,7 @@ public class StreamerGenerator extends Generator {
         		}
         	}
         	
-        	out.println( "streamerClassMap.put( \""+signature( type )+"\", new StructStreamer() {" );
+        	out.println( "initStreamers.put( \""+signature( type )+"\", new StructStreamer() {" );
         	out.indent();
         	out.println(
         			"@Override protected int getFieldNum() { return "+fields.size()+"; }" );
@@ -266,7 +272,7 @@ public class StreamerGenerator extends Generator {
     		JEnumType et = type.isEnum();
     		
         	if ( at != null ) {
-	        	out.println( "streamerClassMap.put( \""+signature(type)+"\", new ArrayStreamer() {" );
+	        	out.println( "initStreamers.put( \""+signature(type)+"\", new ArrayStreamer() {" );
 	        	out.indent();
 	        	out.println(
 	        			"@Override protected Object[] createObjectArrayInstance( int length ) {" );
@@ -284,7 +290,7 @@ public class StreamerGenerator extends Generator {
 	        	
 	        	if ( et != null ) {
 	        		// enum
-		        	out.println( "streamerClassMap.put( \""+signature(type)+"\", new EnumStreamer() {" );
+		        	out.println( "initStreamers.put( \""+signature(type)+"\", new EnumStreamer() {" );
 		        	out.indent();
 		        	out.println(
 		        			"@Override protected Enum<?> getEnumValueOf( int value ) {" );
@@ -298,7 +304,9 @@ public class StreamerGenerator extends Generator {
 	        	}
 	        }
         } 
-        
+
+		out.println("StreamerInternal.INITIAL_STREAMERS = Collections.unmodifiableMap(initStreamers)");
+		out.println("applyConfig(new StreamerConfig());");
         out.outdent();
         out.println( "}" );
         

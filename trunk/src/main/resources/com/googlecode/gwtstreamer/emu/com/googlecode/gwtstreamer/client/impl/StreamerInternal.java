@@ -4,11 +4,20 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.URL;
 import com.googlecode.gwtstreamer.client.Streamer;
 
+import java.util.Map;
+
 /** 
  * This is a client-side implementation of the class.
  */
 public class StreamerInternal
 {
+	/**
+	 * Initially configured GWT streamers
+	 * class name -> class streamer
+	 * Do not touch this field!!!
+	 */
+	public static Map<String,Streamer> INITIAL_STREAMERS;
+
 	private static Streamer rootStreamer = GWT.create( Streamer.class );
 	
 	public static Streamer getRootStreamer() {
@@ -36,4 +45,6 @@ public class StreamerInternal
 	public static void log( String message ) {
 		GWT.log( message );
 	}
+
+	public static boolean isGWT() { return true; }
 }

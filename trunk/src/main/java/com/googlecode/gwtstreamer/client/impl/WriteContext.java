@@ -4,19 +4,15 @@ import com.googlecode.gwtstreamer.client.StreamFactory;
 import com.googlecode.gwtstreamer.client.Streamer;
 import com.googlecode.gwtstreamer.client.StreamerException;
 
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 
-public final class WriteContext implements StreamFactory.Writer
+public final class WriteContext extends Context implements StreamFactory.Writer
 {
 	private Map<Object,Integer> refs = new IdentityHashMap<Object,Integer>( 30 );
 	private Map<Object,Integer> refsImm = new HashMap<Object, Integer>( 70 );
-	private TreeSet<String> classNameStrings = new TreeSet<String>();
 
 	private final StreamFactory.Writer out;
-	
+
 	public WriteContext( StreamFactory.Writer out ) {
 		this.out = out;
 	}
@@ -50,6 +46,7 @@ public final class WriteContext implements StreamFactory.Writer
 	 * @return object identity
 	 * @throws IllegalStateException if object is already registered within the context
 	 */
+	@Override
 	public Integer addObject(Object obj)
 	{
 		Integer idx = Integer.valueOf( refs.size()+refsImm.size() );
@@ -70,15 +67,6 @@ public final class WriteContext implements StreamFactory.Writer
 
 		return idx;
 	}
-
-
-	/** Markers */
-	private final static char NULL = '0';			// null value
-	private final static char REF = 'R';			// reference to serialized object
-	private final static char CLASS_REF = 'C';		// reference to serialized class name
-	private final static char ARRAY_REF = 'A';		// class with package reference
-	private final static char STR_REF = 'X';		// string reference
-	private final static char STR_DEF = 'S';		// string definition
 
 
 	public void writeObject( final Object obj )
@@ -104,15 +92,25 @@ public final class WriteContext implements StreamFactory.Writer
 					out.writeChar(CLASS_REF);
 					out.writeInt(classRef);
 				} else {
-					// array of objects
+					// array
 					int dim = 1;
 					while ( className.charAt( dim ) == '[' )
 						dim++;
-					String objectClassName = className.substring( dim+1, className.length()-1 );
-					Integer classRef = writeClassName(objectClassName);
-					out.writeChar(ARRAY_REF);
-					out.writeInt(dim);
-					out.writeInt(classRef);
+
+					if ( className.charAt(dim) == 'L' ) {
+						// array of objects
+						final String objectClassName = className.substring(dim + 1, className.length() - 1);
+						Integer classRef = writeClassName(objectClassName);
+						out.writeChar(OBJ_ARRAY_REF);
+						out.writeInt(dim);
+						out.writeInt(classRef);
+					} else {
+						// array of primitives
+						final char elem = className.charAt(dim);
+						out.writeChar(ARRAY_REF);
+						out.writeInt(dim);
+						out.writeChar(elem);
+					}
 				}
 
 				Streamer streamer = Streamer.get(clazz);
@@ -133,18 +131,39 @@ public final class WriteContext implements StreamFactory.Writer
 
 		if (ref == null) {
 			// com.googlecode.gwtstreamer.shared
-			final String closestClassName; {
+			// find largest prefix of streamed class
+			String closestClassName = null; {
+				// divide subpackages/classes into lines
 				String[] pp = className.split("[\\.\\$]");
 				StringBuilder sb = new StringBuilder(className.length());
 				String[] names = new String[pp.length];
 
-				for (final String s : pp) {
+				for (int i = 0; i < pp.length; i++) {
+					final String s = pp[i];
 					sb.append(s);
 					String sRef = sb.toString();
-					ref = addObject(sRef);	// last written ID
-					classNameStrings.add(sRef);
-					final char delim = className.charAt(sb.length());
-					sb.append(delim);
+					names[pp.length-i-1] = sRef;
+					if (i < pp.length-1) {
+						final char delim = className.charAt(sb.length());
+						sb.append(delim);
+					}
+				}
+
+				// find largest prefix
+				int n;
+				for (n = 1; n < names.length; n++) {
+					final String s = names[n];
+					if (classNameStrings.contains(s)) {
+						closestClassName = s;
+						break;
+					}
+				}
+
+				// add new packages/classes prefixes
+				for (int i = n-1; i >= 0; i--) {
+					final String s = names[i];
+					ref = addObject(s);	// last written ID
+					classNameStrings.add(s);
 				}
 			}
 
@@ -152,46 +171,16 @@ public final class WriteContext implements StreamFactory.Writer
 				Integer closestClassNameRef = getObjectIdentity(closestClassName);
 				out.writeChar(STR_REF);
 				out.writeInt(closestClassNameRef);
+				// .test.TestClass$MyClass | wordpart.TestClass
+				String restString = className.substring(closestClassName.length());
+				out.writeString(restString);
 			} else {
 				out.writeChar(STR_DEF);
-				closestClassName = "";
-			}
-
-			// .test.TestClass$MyClass | wordpart.TestClass
-			String restString = className.substring(closestClassName.length());
-			out.writeString(restString);
-
-			// ["","test","TestClass","MyClass"]
-			String[] pp = restString.split("[\\.\\$]");
-			StringBuilder sb = new StringBuilder(closestClassName);
-
-			if (!"".equals(pp[0])) {
-				sb.append(pp[0]);
-				String sRef = sb.toString();
-				addObject(sRef);
-				classNameStrings.add(sRef);
-			}
-
-			for (int i = 1; i < pp.length; i++) {
-				final String s = pp[i];
-				final char delim = className.charAt(sb.length());
-				sb.append(delim).append(s);
-				String sRef = sb.toString();
-				ref = addObject(sRef);	// last written ID
-				classNameStrings.add(sRef);
+				out.writeString(className);
 			}
 		}
 
 		return ref;
-	}
-
-
-	private String findClosestClassNameString( String className ) {
-
-	}
-
-	private void addClassNameString( String className ) {
-
 	}
 
 	@Override

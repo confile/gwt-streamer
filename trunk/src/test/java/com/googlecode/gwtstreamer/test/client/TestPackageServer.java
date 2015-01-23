@@ -1,6 +1,7 @@
 package com.googlecode.gwtstreamer.test.client;
 
 import com.googlecode.gwtstreamer.client.Streamer;
+import com.googlecode.gwtstreamer.client.StreamerConfig;
 import com.googlecode.gwtstreamer.client.StreamerException;
 import com.googlecode.gwtstreamer.test.client.shared.ContainerClass;
 import com.googlecode.gwtstreamer.test.client.shared.SerBean;
@@ -18,7 +19,9 @@ public class TestPackageServer extends TestCase
 	
 	public void testPackageNames()
 	{
-		Streamer.registerPackage(TypedArray.class.getPackage().getName());
+		StreamerConfig cfg = new StreamerConfig();
+		cfg.registerName( TypedArray.class.getPackage().getName() );
+		Streamer.applyConfig(cfg);
 
 		/*{
 			TypedArray t = new TypedArray();
@@ -71,7 +74,9 @@ public class TestPackageServer extends TestCase
 	public void testStreamVersion() throws StreamerException {
 		String b = Streamer.get().toString( new SimpleBean( 1, "A" ) );
 		System.out.println(b);
-		Streamer.registerPackage("com.some.package");
+		StreamerConfig cfg = new StreamerConfig();
+		cfg.registerName(TypedArray.class.getPackage().getName());
+		Streamer.applyConfig(cfg);
 		String ba = Streamer.get().toString( new SimpleBean( 1, "A" ) );
 		System.out.println(ba);
 		try {

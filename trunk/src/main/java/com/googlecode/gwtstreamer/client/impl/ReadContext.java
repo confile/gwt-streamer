@@ -4,14 +4,11 @@ import com.googlecode.gwtstreamer.client.StreamFactory;
 import com.googlecode.gwtstreamer.client.Streamer;
 import com.googlecode.gwtstreamer.client.StreamerException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 
-public final class ReadContext implements StreamFactory.Reader
+public final class ReadContext extends Context implements StreamFactory.Reader
 {
 	private List<Object> refs = new ArrayList<Object>( 70 );
-	private TreeSet<String> classNameStrings = new TreeSet<String>();
 
 	private final StreamFactory.Reader in;
 
@@ -20,7 +17,7 @@ public final class ReadContext implements StreamFactory.Reader
 		this.in = in;
 	}
 	
-	public ReadContext( StreamFactory.Reader in, ReadContext init ) {
+	public ReadContext(StreamFactory.Reader in, ReadContext init) {
 		this(in);
 		this.refs.addAll( init.refs );
 		this.classNameStrings.addAll(init.classNameStrings);
@@ -37,18 +34,10 @@ public final class ReadContext implements StreamFactory.Reader
 	 * @return object identity
 	 * @throws IllegalStateException if object is already registered within the context
 	 */
-	public void addObject(Object obj) {
+	public Integer addObject(Object obj) {
 		refs.add( obj );
+		return Integer.valueOf(refs.size());
 	}
-
-	// TODO: share with WriteContext
-	private final static char NULL = '0';			// null value
-	private final static char REF = 'R';			// reference to serialized object
-	private final static char CLASS_REF = 'C';		// reference to serialized class name
-	private final static char ARRAY_REF = 'A';		// class with package reference
-	private final static char STR_REF = 'X';		// string reference
-	private final static char STR_DEF = 'S';		// string definition
-
 
 	public Object readObject()
 	{
@@ -80,14 +69,22 @@ public final class ReadContext implements StreamFactory.Reader
 					if (b == CLASS_REF) {
 						int classIdx = in.readInt();
 						className = (String) getObject(classIdx);
-					} else if (b == ARRAY_REF) {
+					} else if (b == OBJ_ARRAY_REF) {
 						int dim = in.readInt();
 						int classIdx = in.readInt();
 						String objectClassName = (String) getObject(classIdx);
-						StringBuilder sb = new StringBuilder();
+						StringBuilder sb = new StringBuilder(dim+objectClassName.length()+3);
 						for ( int i = 0; i < dim; i++ )
 							sb.append( '[' );
-						className = sb.toString()+"L"+objectClassName+";";
+						className = sb.append("L").append(objectClassName).append(";").toString();
+					} else if (b == ARRAY_REF) {
+						int dim = in.readInt();
+						char elem = in.readChar();
+						StringBuilder sb = new StringBuilder(dim+2);
+						for ( int i = 0; i < dim; i++ )
+							sb.append( '[' );
+						sb.append(elem);
+						className = sb.toString();
 					} else {
 						throw new StreamerException( "Unknown tag" );
 					}
@@ -126,7 +123,8 @@ public final class ReadContext implements StreamFactory.Reader
 
 		// ["","test","TestClass","MyClass"]
 		String[] pp = restString.split("[\\.\\$]");
-		StringBuilder sb = new StringBuilder(closestClassName);
+		StringBuilder sb = new StringBuilder(closestClassName.length()+restString.length());
+		sb.append(closestClassName);
 
 		if (!"".equals(pp[0])) {
 			sb.append(pp[0]);

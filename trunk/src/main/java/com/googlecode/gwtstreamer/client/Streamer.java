@@ -32,132 +32,55 @@ import com.googlecode.gwtstreamer.client.std.SimpleStreamers.StringStreamer;
 
 public abstract class Streamer
 {
-	private static WriteContext initWriteCtx = new WriteContext(null);
-	private static ReadContext initReadCtx = new ReadContext(null);
-
-	public volatile static boolean debug = false;
-	
 	/**
-	 * Configuration hash: a value that reflects Streamer's configuration state
-	 * included in every message. De-serialization process controls that current
-	 * configuration state of Streamer is the same that is indicated in message.
-	 * Otherwise exception is thrown.
+	 * Registered streamers (initial + configured)
+	 * class name -> class streamer
 	 */
-	private static int streamVersion;
-	/*private static String streamVersionMark;
-	private static int aliasHash = 0;
-	private static int packageHash = 0;
-	private static Set<String> registeredStreamers = new TreeSet<String>();
-
-	private static void recalculateStreamVersion() {
-		streamVersion = 0;
-		for ( String cls : registeredStreamers )
-			streamVersion ^= hashCode(streamerClassMap.get(cls).getClass().getName());
-		streamVersion ^= aliasHash;
-		streamVersion ^= packageHash;
-		if ( streamFactory != null )
-			streamVersion ^= hashCode(streamFactory.getClass().getName());
-		byte[] buf = new byte[] {
-				(byte) ((streamVersion >>>  0) & 0xFF),
-				(byte) ((streamVersion >>>  8) & 0xFF),
-				(byte) ((streamVersion >>> 16) & 0xFF),
-				(byte) ((streamVersion >>> 24) & 0xFF),
-		};
-		streamVersionMark = Base64Util.encode(buf).substring(0, 6);
-
-		if ( debug )
-			printConfig();
-	}*/
+	private static Map<String,Streamer> streamers;
 
 
-	private static void printConfig() {
-		/*StreamerInternal.log("Current stream version: " + streamVersion);
-		StreamerInternal.log("Stream factory: "+streamFactory.getClass().getName());
-		StreamerInternal.log("Registered streamers:");
-		int v = 0;
-		for ( String cls : registeredStreamers ) {
-			String s = streamerClassMap.get(cls).getClass().getName();
-			v ^= hashCode(s);
-			StreamerInternal.log("  " + s+" ("+v+")");
-		}
-		StreamerInternal.log("Registered classes ("+aliasHash+"):");
-		for (Map.Entry<String,String> entry : new TreeMap<String,String>(idClassMap).entrySet() ) {
-			StreamerInternal.log("  "+entry.getValue()+" -> "+entry.getKey() );
-		}
-		StreamerInternal.log("Registered packages ("+packageHash+"):");
-		for ( String p : packages )
-			StreamerInternal.log("  "+p);*/
-	}
+	private static StreamFactory streamFactory;
+	private static WriteContext	initWriteCtx;
+	private static ReadContext 	initReadCtx;
+	private static int configVersion;
+
 
 	/**
 	 * Return current version of stream. A stream version is hash that reflects current configuration.
 	 * @return current version of stream
 	 */
-	public static int getStreamVersion() {
-		if ( debug )
-			printConfig();
-		return streamVersion;
-	}
-
-	/**
-	 * We do not rely on GWT String.hashCode() implementation while it may differ
-	 * from the JVM one.
-	 * @param s string
-	 * @return hash code
-	 */
-	private static int hashCode(String s) {
-		int h = 0;
-		for (int i = 0; i < s.length(); i++) {
-			int c = (int) s.charAt(i);
-			h = 31 * h + c;
-			h = ~(~h);		// JS overflow check
-		}
-		return h;
+	public static int getConfigVersion() {
+		return configVersion;
 	}
 
 
 
-	/**
-	 * A shorter aliases are assigned to registered classes in order to reduce size of serialized data.
-	 * NOTE! You must register the same classes in the same order on client and server stuff.
-	 * @param cl
-	 * @return generatedId or null if class already registered
-	 */
-	public synchronized static void registerClass(Class<?> cl) {
 
-	}
-	
-	
-	/** class name -> class streamer */
-	protected final static Map<String,Streamer> streamerClassMap = new HashMap<String, Streamer>(); 
-	
-	/**
-	 * Registers a custom streamer for a target class.
-	 * Custom streamer must override writeObject() and readObject() methods to provide custom
-	 * implementation.
-	 * @param targetClass class that the streamer will serialize
-	 * @param streamer Streamer implementation for that class
-	 */
-	public synchronized static void registerStreamer( Class<?> targetClass, Streamer streamer )
-	{
-		//registerClass( targetClass );
-		streamerClassMap.put( targetClass.getName(), streamer );
-	}
-	
-	
-	/**
-	 * Add package name to obtain shorter serialized data output for classes of this package and
-	 * all super-packages.
-	 * @param packageName package name
-	 */
-	public synchronized static void registerPackage(String packageName)
-	{
-	}
-	
-	
 	static {
+		// if not in GWT mode apply default configuration. In GWT it will be made by another block.
+		if (!StreamerInternal.isGWT())
+			applyConfig(new StreamerConfig());
+	}
+
+
+	/**
+	 * Apply new streamer configuration. Warning! While GWT Streamer use a singleton instance switching to another
+	 * configuration gives unpredictable results on concurrent serializations. The best way is to configure your
+	 * GWT streamer at the initialization part of the application.
+	 * @param config new configuration to apply
+	 */
+	public synchronized static void applyConfig(StreamerConfig config)
+	{
+		streamFactory = config.getStreamFactory();
+		streamers = new HashMap<String,Streamer>();
+		initWriteCtx = new WriteContext(null);
+		initReadCtx = new ReadContext(null);
+
+		// add GWT streamers
+		streamers.putAll(StreamerInternal.INITIAL_STREAMERS);
+
 		// add default streamers
-		registerStreamer( Integer.class, new IntegerStreamer() );
+		registerStreamer(Integer.class, new IntegerStreamer());
 		registerStreamer( Short.class, new ShortStreamer() );
 		registerStreamer( Byte.class, new ByteStreamer() );
 		registerStreamer( Long.class, new LongStreamer() );
@@ -192,40 +115,33 @@ public abstract class Streamer
 		registerStreamer( IdentityHashMap.class, new CollectionStreamers.IdentityHashMapStreamer() );
 		registerStreamer( LinkedHashMap.class, new CollectionStreamers.LinkedHashMapStreamer() );
 		registerStreamer( TreeMap.class, new CollectionStreamers.TreeMapStreamer() );
-		
-		// add default classes to create short alias names
-		registerClass(Integer.class);
-		registerClass(String.class);
-		registerClass(Object.class);
-		registerClass(Long.class);
-		registerClass(Short.class);
-		registerClass(Byte.class);
-		registerClass(Character.class);
-		registerClass(Double.class);
-		registerClass(Float.class);
-		registerClass(Boolean.class);
-		registerClass(Object[].class);
-		registerClass(String[].class);
-		registerClass(BigInteger.class);
-		registerClass(BigDecimal.class);
-		registerClass(ArrayList.class);
-		registerClass(LinkedList.class);
-		registerClass(HashSet.class);
-		registerClass(LinkedHashSet.class);
-		registerClass(TreeSet.class);
-		registerClass(Vector.class);
-		registerClass(HashMap.class);
-		registerClass(IdentityHashMap.class);
-		registerClass(LinkedHashMap.class);
-		registerClass(TreeMap.class);
-		registerClass(Date.class);
+
+		initWriteCtx.addClassNameString(Object.class.getName());
+		initReadCtx.addClassNameString(Object.class.getName());
+
+		// add custom class names
+		for (String s : config.getRegisteredNames()) {
+			initWriteCtx.addClassNameString(s);
+			initReadCtx.addClassNameString(s);
+		}
+
+		// add custom streamers
+		for (Map.Entry<Class<?>,Streamer> e : config.getRegisteredStreamers().entrySet())
+			registerStreamer(e.getKey(), e.getValue());
+
+		configVersion = config.getVersion();
 	}
-	
-	
-	/** Structure streamers are generated by GWT to provide specific access to object's fields  
+
+	private static void registerStreamer(Class<?> clazz, Streamer streamer) {
+		streamers.put(clazz.getName(), streamer);
+		initWriteCtx.addClassNameString(clazz.getName());
+		initReadCtx.addClassNameString(clazz.getName());
+	}
+
+	/** Structure streamers are generated by GWT to provide specific access to object's fields
 		Example of code generation:
 	static {
-		streamerClassMap.put( "com.googlecode.gwtstreamer.client.test.TestBean", new StructStreamer() {
+		INITIAL_STREAMERS.put( "com.googlecode.gwtstreamer.client.test.TestBean", new StructStreamer() {
 			// Get number of fields.
 			@Override protected int getFieldNum() { return 2; }
 			
@@ -253,23 +169,10 @@ public abstract class Streamer
 				obj.@com.googlecode.gwtstreamer.client.test.TestBean::b = values.@java.util.List::get(I)(1);
 			}-/;
 		} );
+		...
+		applyConfig(new StreamerConfig());
 	}
 	*/
-	
-	
-	/** Stream factory is responsible to create Reader and Writer */
-	private static StreamFactory streamFactory = new UrlEncStreamFactory();
-
-	/**
-	 * SwitchTo
-	 * @param streamFactory
-	 * @return old StreamFactory object
-	 */
-	public synchronized static StreamFactory switchToStreamFactory( StreamFactory streamFactory ) {
-		StreamFactory old = Streamer.streamFactory;
-		Streamer.streamFactory = streamFactory;
-		return old;
-	}
 	
 	
 	/** Get root streamer. Lazy init */
@@ -279,16 +182,16 @@ public abstract class Streamer
 	}
 	
 	
-	/** Get streamer for class */
+	/** Get streamer for class (internal use only) */
 	public static Streamer get( Class<?> cl ) {
 		return get( cl.getName() );
 	}
 	
 	
-	/** Get streamer for class */
+	/** Get streamer for class (internal use only) */
 	public static Streamer get( String className )
 	{
-		Streamer streamer = streamerClassMap.get( className );
+		Streamer streamer = streamers.get( className );
 		
 		if ( streamer == null )
 			// server: delegate for dynamic streamer creation
@@ -300,13 +203,14 @@ public abstract class Streamer
 	
 	/**
 	 * Serialize object to string
-	 * @param obj
-	 * @return
+	 * @param obj object to serialize
+	 * @return string containing serialized object
+	 * @throws StreamerException if serialization was unsuccessful
 	 */
 	public String toString( final Object obj )
 	{
 		StreamFactory.Writer out = streamFactory.createWriter();
-		out.writeInt(streamVersion);
+		out.writeInt(configVersion);
 		final WriteContext ctx = new WriteContext( out, initWriteCtx );
 		get().writeObject( obj, ctx );
 		return ctx.getData();
@@ -315,19 +219,19 @@ public abstract class Streamer
 	
 	/**
 	 * Deserialize object from string
-	 * @param str
-	 * @return
+	 * @param str string containing object
+	 * @return de-serialized object
+	 * @throws StreamerException if de-serialization was unsuccessful
 	 */
 	public Object fromString( final String str ) 
 	{
-		final ReadContext ctx = new ReadContext( initReadCtx );
 		final StreamFactory.Reader in = streamFactory.createReader( str );
 		final int strVer = in.readInt();
-		if ( streamVersion != strVer )
-			throw new StreamerException( "The message was serialized with another version of stream. " +
+		if ( configVersion != strVer )
+			throw new StreamerException( "The message was serialized with another version of configuration. " +
 					"This may occur when producer and consumer Streamers were configured differently. " +
-					"Please, ensure that both have followed in the same order registerClass(), registerStreamer(), registerPackage(), " +
-					"switchToStreamFactory()." );
+					"Please, ensure that both have the same StreamerConfig.getVersion()." );
+		final ReadContext ctx = new ReadContext( in, initReadCtx );
 		return get().readObject( ctx );
 	}
 	
@@ -335,8 +239,9 @@ public abstract class Streamer
 	/**
 	 * Obtain deep copy of an object.
 	 * The copy is made through serializing and de-serializing thus object must be an instance of Streamable type.
-	 * @param obj
-	 * @return
+	 * @param obj object to clone
+	 * @return deeply cloned object
+	 * @throws StreamerException if clonning was unsuccessful
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T deepCopy( final T obj )
@@ -344,13 +249,22 @@ public abstract class Streamer
 		String s = toString( obj );
 		return (T) fromString( s );
 	}
-	
-	
+
+	/**
+	 * Default implementation of object serialization within context (internal use only)
+	 * @param obj object to serialize
+	 * @param ctx serialization context
+	 */
 	public void writeObject( final Object obj, final WriteContext ctx )	{
 		ctx.writeObject(obj);
 	}
-	
-	
+
+
+	/**
+	 * Default implementation of object de-serialization within context (internal use only)
+	 * @param ctx serialization context
+	 * @return de-serialized object
+	 */
 	public Object readObject( final ReadContext ctx ) {
 		return ctx.readObject();
 	}

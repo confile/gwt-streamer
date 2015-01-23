@@ -10,10 +10,7 @@ import com.googlecode.gwtstreamer.client.std.StructStreamer;
 import java.lang.reflect.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /** 
@@ -22,6 +19,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class StreamerInternal
 {
+	/**
+	 * Initially configured GWT streamers
+	 * class name -> class streamer
+	 * Do not touch this field!!!
+	 */
+	public static Map<String,Streamer> INITIAL_STREAMERS = Collections.unmodifiableMap(Collections.<String, Streamer>emptyMap());
+
 	private static Streamer rootStreamer = new Streamer() {};
 	private static ConcurrentHashMap<String,Streamer> streamers = new ConcurrentHashMap<String, Streamer>();
 	
@@ -244,4 +248,6 @@ public class StreamerInternal
 	public static void log( String message ) {
 		System.out.println( message );
 	}
+
+	public static boolean isGWT() { return false; }
 }
