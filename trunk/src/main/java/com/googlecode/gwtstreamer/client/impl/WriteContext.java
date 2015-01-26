@@ -73,14 +73,13 @@ public final class WriteContext extends Context implements StreamFactory.Writer
 	{
 		if ( obj == null ) {
 			// write null (empty string)
-			out.writeChar( NULL );
+			out.writeByte((byte) NULL);
 		} else {
 			final Integer refIdx = getObjectIdentity(obj);
 
 			if ( refIdx != null ) {
 				// write object reference (digits)
-				out.writeChar( REF );
-				out.writeInt( refIdx );
+				writePacked(REF, refIdx);
 			} else {
 				// try to obtain class short name or reference
 				final Class<?> clazz = obj.getClass();
@@ -89,8 +88,7 @@ public final class WriteContext extends Context implements StreamFactory.Writer
 				if ( !className.startsWith( "[" ) ) {
 					// regular class
 					Integer classRef = writeClassName(className);
-					out.writeChar(CLASS_REF);
-					out.writeInt(classRef);
+					writePacked(CLASS_REF, classRef);
 				} else {
 					// array
 					int dim = 1;
@@ -101,15 +99,23 @@ public final class WriteContext extends Context implements StreamFactory.Writer
 						// array of objects
 						final String objectClassName = className.substring(dim + 1, className.length() - 1);
 						Integer classRef = writeClassName(objectClassName);
-						out.writeChar(OBJ_ARRAY_REF);
-						out.writeInt(dim);
+						writePacked(OBJ_ARRAY_REF, dim);
 						out.writeInt(classRef);
 					} else {
 						// array of primitives
 						final char elem = className.charAt(dim);
-						out.writeChar(ARRAY_REF);
-						out.writeInt(dim);
-						out.writeChar(elem);
+						final int elemId = PRIMITIVES.indexOf(elem);
+
+						if (dim <= 3) {
+							// pack dimension & type
+							int val = elemId | ((dim-1)<<3);
+							writePacked(ARRAY_REF, val);
+						} else {
+							// pack type and write dimension apart
+							int val = elemId | (0x3<<3);
+							writePacked(ARRAY_REF, val);
+							out.writeInt(dim);
+						}
 					}
 				}
 
@@ -169,18 +175,31 @@ public final class WriteContext extends Context implements StreamFactory.Writer
 
 			if (closestClassName != null) {
 				Integer closestClassNameRef = getObjectIdentity(closestClassName);
-				out.writeChar(STR_REF);
-				out.writeInt(closestClassNameRef);
+				writePacked(STR_REF, closestClassNameRef);
 				// .test.TestClass$MyClass | wordpart.TestClass
 				String restString = className.substring(closestClassName.length());
 				out.writeString(restString);
 			} else {
-				out.writeChar(STR_DEF);
+				out.writeByte((byte) STR_DEF);
 				out.writeString(className);
 			}
 		}
 
 		return ref;
+	}
+
+
+	private void writePacked( int tag, int val ) {
+		// 0x1F = 00011111
+		if ((val & ~0x1F) != 0 && val != 0x1F) {
+			// unpacked value
+			// 0x7=00000111
+			out.writeByte((byte)((~0x7) | tag));
+			out.writeInt(val);
+		} else {
+			// packed value
+			out.writeByte((byte)((val<<3) | tag));
+		}
 	}
 
 	@Override

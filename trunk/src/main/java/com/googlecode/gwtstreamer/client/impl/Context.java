@@ -8,15 +8,16 @@ import java.util.Set;
  */
 public abstract class Context
 {
-    /** Markers */
-    protected final static char NULL = '0';			// null value
-    protected final static char REF = 'R';			// reference to serialized object
-    protected final static char CLASS_REF = 'C';	// reference to serialized class name
-    protected final static char ARRAY_REF = 'A';	// array of primitives
-    protected final static char OBJ_ARRAY_REF = 'O';// array of objects
-    protected final static char STR_REF = 'X';		// string reference
-    protected final static char STR_DEF = 'S';		// string definition
+    protected final static String PRIMITIVES = "ZBCDFIJS";
 
+    /** Markers */
+    protected final static int NULL = 0;			// null value
+    protected final static int REF = 1;			    // reference to serialized object
+    protected final static int CLASS_REF = 2;	    // reference to serialized class name
+    protected final static int ARRAY_REF = 3;	    // array of primitives
+    protected final static int OBJ_ARRAY_REF = 4;   // array of objects
+    protected final static int STR_REF = 5;		    // string reference
+    protected final static int STR_DEF = 6;		    // string definition
 
     protected Set<String> classNameStrings = new HashSet<String>();
 

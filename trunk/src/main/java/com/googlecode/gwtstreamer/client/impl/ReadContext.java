@@ -39,19 +39,22 @@ public final class ReadContext extends Context implements StreamFactory.Reader
 		return Integer.valueOf(refs.size());
 	}
 
+	private int[] tagVal = new int[2];	// temporal use only, not tolerant to concurrent calls
+
 	public Object readObject()
 	{
-		char b = in.readChar();
+		int[] tagVal = readPacked(this.tagVal);
+		int tag = tagVal[0];
+		int val = tagVal[1];
 
-		if ( b == NULL )
+		if ( tag == NULL )
 			// is null
 			return null;
 		else {
-			if ( b == REF ) {
+			if ( tag == REF ) {
 				// it is an object reference
 				try {
-					final int refIdx = in.readInt();
-					return getObject(refIdx);
+					return getObject(val);
 				} catch ( Exception ex ) {
 					throw new StreamerException( "Protocol mismatch", ex );
 				}
@@ -61,25 +64,35 @@ public final class ReadContext extends Context implements StreamFactory.Reader
 				final String className;
 
 				try {
-					if (b == STR_DEF || b == STR_REF) {
-						readClassName(b);
-						b = in.readChar();
+					if (tag == STR_DEF || tag == STR_REF) {
+						readClassName(tag, val);
+						tagVal = readPacked(this.tagVal);
+						tag = tagVal[0];
+						val = tagVal[1];
 					}
 
-					if (b == CLASS_REF) {
-						int classIdx = in.readInt();
-						className = (String) getObject(classIdx);
-					} else if (b == OBJ_ARRAY_REF) {
-						int dim = in.readInt();
+					if (tag == CLASS_REF) {
+						className = (String) getObject(val);
+					} else if (tag == OBJ_ARRAY_REF) {
+						int dim = val;
 						int classIdx = in.readInt();
 						String objectClassName = (String) getObject(classIdx);
 						StringBuilder sb = new StringBuilder(dim+objectClassName.length()+3);
 						for ( int i = 0; i < dim; i++ )
 							sb.append( '[' );
 						className = sb.append("L").append(objectClassName).append(";").toString();
-					} else if (b == ARRAY_REF) {
-						int dim = in.readInt();
-						char elem = in.readChar();
+					} else if (tag == ARRAY_REF) {
+						int dim = (val>>3) & 0xFF;
+
+						if ( dim == 0x3 ) {
+							// unpacked value
+							dim = in.readInt();
+						} else {
+							// packed value
+							dim++;
+						}
+						final int elemIdx = val & 0x7;
+						char elem = PRIMITIVES.charAt(elemIdx);
 						StringBuilder sb = new StringBuilder(dim+2);
 						for ( int i = 0; i < dim; i++ )
 							sb.append( '[' );
@@ -102,20 +115,38 @@ public final class ReadContext extends Context implements StreamFactory.Reader
 		}
 	}
 
+	private int[] readPacked( int[] tagVal ) {
+		if (tagVal == null || tagVal.length < 2)
+			tagVal = new int[2];
 
-	public String readClassName( char b ) {
+		int raw = in.readByte() & 0xFF;
+
+		// 0x7=00000111
+		if ((raw & ~0x7) == ~0x7) {
+			// unpacked value
+			tagVal[0] = raw & 0x7;
+			tagVal[1] = in.readInt();
+		} else {
+			// packed value
+			tagVal[0] = raw & 0x7;
+			tagVal[1] = (raw >> 3) & 0xFF;
+		}
+
+		return tagVal;
+	}
+
+	public String readClassName( int tag, int val ) {
 		final String closestClassName;
 		final String restString;
 		final String className;
 
-		if (b == STR_DEF) {
+		if (tag == STR_DEF) {
 			closestClassName = "";
 			restString = in.readString();
 			className = restString;
 		}
-		else if (b == STR_REF) {
-			int refIdx = in.readInt();
-			closestClassName = (String) getObject(refIdx);
+		else if (tag == STR_REF) {
+			closestClassName = (String) getObject(val);
 			restString = in.readString();
 			className = closestClassName + restString;
 		} else
