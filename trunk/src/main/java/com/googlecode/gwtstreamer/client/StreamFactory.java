@@ -6,7 +6,7 @@ package com.googlecode.gwtstreamer.client;
  */
 public interface StreamFactory {
 	public interface Writer {
-		public String toString();
+		public String getData();
 		public void writeInt( int val );
 		public void writeLong( long val );
 		public void writeShort( short val );

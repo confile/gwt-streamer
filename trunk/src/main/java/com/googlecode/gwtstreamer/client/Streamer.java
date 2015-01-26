@@ -54,8 +54,6 @@ public abstract class Streamer
 	}
 
 
-
-
 	static {
 		// if not in GWT mode apply default configuration. In GWT it will be made by another block.
 		if (!StreamerInternal.isGWT())

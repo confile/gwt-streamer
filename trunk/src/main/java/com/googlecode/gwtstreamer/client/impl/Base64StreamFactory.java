@@ -88,7 +88,7 @@ public class Base64StreamFactory implements StreamFactory
 		private ByteBufferOutput out = new ByteBufferOutput();
 		
 		
-		public String toString() {
+		public String getData() {
 			byte[] buf = out.toByteArray();
 			return Base64Util.encode( buf );
 		}
@@ -128,17 +128,15 @@ public class Base64StreamFactory implements StreamFactory
 		public void writeBoolean( boolean v ) {
 			out.write(v ? 1 : 0);
 		}
-		
+
 		public void writeDouble( double val ) {
-			// TODO: ...
-			writeString( Double.toString( val ) );
+			writeLong(Double.doubleToLongBits(val));
 		}
-		
+
 		public void writeFloat( float val ) {
-			// TODO: ...
-			writeString( Double.toString( val ) );
+			writeInt(Float.floatToIntBits(val));
 		}
-		
+
 		/** String will be encoded and may contain any character */
 		public void writeString( String val ) {
 			try {
@@ -152,60 +150,6 @@ public class Base64StreamFactory implements StreamFactory
 				throw new StreamerException( e );
 			}
 		}
-		
-		/*@Override
-		public void writeIntArray(int[] val) {
-			writeInt( val.length );
-			for ( int v : val )
-				writeInt( v );
-		}
-
-		@Override
-		public void writeLongArray(long[] val) {
-			writeInt( val.length );
-			for ( long v : val )
-				writeLong( v );
-		}
-
-		@Override
-		public void writeShortArray(short[] val) {
-			writeInt( val.length );
-			for ( short v : val )
-				writeShort( v );
-		}
-
-		@Override
-		public void writeByteArray(byte[] val) {
-			writeInt( val.length );
-			for ( byte v : val )
-				writeByte( v );
-		}
-
-		@Override
-		public void writeCharArray(char[] val) {
-			writeString( new String( val ) );
-		}
-
-		@Override
-		public void writeBooleanArray(boolean[] val) {
-			writeInt( val.length );
-			for ( boolean v : val )
-				writeBoolean( v );
-		}
-
-		@Override
-		public void writeDoubleArray(double[] val) {
-			writeInt( val.length );
-			for ( double v : val )
-				writeDouble( v );
-		}
-
-		@Override
-		public void writeFloatArray(float[] val) {
-			writeInt( val.length );
-			for ( float v : val )
-				writeFloat( v );
-		}*/
 	}
 
 
@@ -230,25 +174,26 @@ public class Base64StreamFactory implements StreamFactory
 	        int ch2 = in.read();
 	        int ch3 = in.read();
 	        int ch4 = in.read();
-	        return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
+	        return ((ch1 << 24) | (ch2 << 16) | (ch3 << 8) | (ch4 << 0));
 		}
 
 		public long readLong() {
-	        int ch1 = in.read();
-	        int ch2 = in.read();
-	        int ch3 = in.read();
-	        int ch4 = in.read();
-	        int ch5 = in.read();
-	        int ch6 = in.read();
-	        int ch7 = in.read();
-	        int ch8 = in.read();
-	        return ((ch1 << 56) + (ch2 << 48) + (ch3 << 40) + (ch4 << 32) + (ch5 << 24) + (ch6 << 16) + (ch7 << 8) + (ch8 << 0));
+	        long ch1 = in.read();
+			long ch2 = in.read();
+			long ch3 = in.read();
+			long ch4 = in.read();
+			long ch5 = in.read();
+			long ch6 = in.read();
+			long ch7 = in.read();
+			long ch8 = in.read();
+	        return ((ch1 << 56) | (ch2 << 48) | (ch3 << 40) | (ch4 << 32) | (ch5 << 24)
+					| (ch6 << 16) | (ch7 << 8) | (ch8 << 0));
 		}
 		
 		public short readShort() {
 	        int ch1 = in.read();
 	        int ch2 = in.read();
-	        return (short)((ch1 << 8) + (ch2 << 0));
+	        return (short)((ch1 << 8) | (ch2 << 0));
 		}
 
 		
@@ -260,32 +205,20 @@ public class Base64StreamFactory implements StreamFactory
 		public char readChar() {
 	        int ch1 = in.read();
 	        int ch2 = in.read();
-	        return (char)((ch1 << 8) + (ch2 << 0));
+	        return (char)((ch1 << 8) | (ch2 << 0));
 		}
 		
 		public boolean readBoolean() {
 			int ch = in.read();
 			return (ch != 0);
 		}
-		
+
 		public double readDouble() {
-			String s = readString();
-			
-			try {
-				return Double.parseDouble( s );
-			} catch ( NumberFormatException ex ) {
-				throw new StreamerException( ex );
-			}
+			return Double.longBitsToDouble(readLong());
 		}
-		
+
 		public float readFloat() {
-			String s = readString();
-			
-			try {
-				return Float.parseFloat( s );
-			} catch ( NumberFormatException ex ) {
-				throw new StreamerException( ex );
-			}
+			return Float.intBitsToFloat(readInt());
 		}
 		
 		/** String will be encoded and may contain any character */
@@ -300,83 +233,6 @@ public class Base64StreamFactory implements StreamFactory
 				throw new StreamerException( e );
 			}
 		}
-		
-		
-		/*@Override
-		public int[] readIntArray() {
-			int n = readInt();
-			int[] buf = new int[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readInt();
-			return buf;
-		}
-
-
-		@Override
-		public long[] readLongArray() {
-			int n = readInt();
-			long[] buf = new long[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readLong();
-			return buf;
-		}
-
-
-		@Override
-		public short[] readShortArray() {
-			int n = readInt();
-			short[] buf = new short[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readShort();
-			return buf;
-		}
-
-
-		@Override
-		public byte[] readByteArray() {
-			int n = readByte();
-			byte[] buf = new byte[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readByte();
-			return buf;
-		}
-
-
-		@Override
-		public char[] readCharArray() {
-			String s = readString();
-			return s.toCharArray();
-		}
-
-
-		@Override
-		public boolean[] readBooleanArray() {
-			int n = readInt();
-			boolean[] buf = new boolean[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readBoolean();
-			return buf;
-		}
-
-
-		@Override
-		public double[] readDoubleArray() {
-			int n = readInt();
-			double[] buf = new double[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readDouble();
-			return buf;
-		}
-
-
-		@Override
-		public float[] readFloatArray() {
-			int n = readInt();
-			float[] buf = new float[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readFloat();
-			return buf;
-		}*/
 	}
 
 

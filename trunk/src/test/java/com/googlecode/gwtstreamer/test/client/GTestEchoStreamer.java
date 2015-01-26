@@ -36,7 +36,7 @@ import com.googlecode.gwtstreamer.test.client.shared.TypedArray.MyEnum;
  * Client and server serialization test with echo 
  * @author Anton
  */
-public class GwtTestEchoStreamer extends GWTTestCase {
+public class GTestEchoStreamer extends GWTTestCase {
 	@Override
 	public String getModuleName() {
 		return "com.googlecode.gwtstreamer.test.GWTStreamerJUnit";

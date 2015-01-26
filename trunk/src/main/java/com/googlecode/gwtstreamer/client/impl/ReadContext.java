@@ -122,12 +122,13 @@ public final class ReadContext extends Context implements StreamFactory.Reader
 		int raw = in.readByte() & 0xFF;
 
 		// 0x7=00000111
-		if ((raw & ~0x7) == ~0x7) {
-			// unpacked value
+		// if (highest 5 bits of a byte = 11111
+		if ((raw & ~0x7) == (~0x7 & 0xFF)) {
+			// read unpacked value
 			tagVal[0] = raw & 0x7;
 			tagVal[1] = in.readInt();
 		} else {
-			// packed value
+			// read packed value
 			tagVal[0] = raw & 0x7;
 			tagVal[1] = (raw >> 3) & 0xFF;
 		}

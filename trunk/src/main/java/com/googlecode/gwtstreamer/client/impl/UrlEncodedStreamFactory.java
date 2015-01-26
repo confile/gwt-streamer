@@ -3,7 +3,7 @@ package com.googlecode.gwtstreamer.client.impl;
 import com.googlecode.gwtstreamer.client.StreamFactory;
 import com.googlecode.gwtstreamer.client.StreamerException;
 
-public class UrlEncStreamFactory implements StreamFactory
+public class UrlEncodedStreamFactory implements StreamFactory
 {
 	private final static char DELIMITER = '_';
 	
@@ -22,7 +22,7 @@ public class UrlEncStreamFactory implements StreamFactory
 		}
 		
 		
-		public String toString() {
+		public String getData() {
 			return StreamerInternal.urlEncode( buf.toString() );
 		}
 		
@@ -64,60 +64,6 @@ public class UrlEncStreamFactory implements StreamFactory
 			writeInt( val.length() );
 			write( val );
 		}
-		
-		/*@Override
-		public void writeIntArray(int[] val) {
-			writeInt( val.length );
-			for ( int v : val )
-				writeInt( v );
-		}
-
-		@Override
-		public void writeLongArray(long[] val) {
-			writeInt( val.length );
-			for ( long v : val )
-				writeLong( v );
-		}
-
-		@Override
-		public void writeShortArray(short[] val) {
-			writeInt( val.length );
-			for ( short v : val )
-				writeShort( v );
-		}
-
-		@Override
-		public void writeByteArray(byte[] val) {
-			writeInt( val.length );
-			for ( byte v : val )
-				writeByte( v );
-		}
-
-		@Override
-		public void writeCharArray(char[] val) {
-			writeString( new String( val ) );
-		}
-
-		@Override
-		public void writeBooleanArray(boolean[] val) {
-			writeInt( val.length );
-			for ( boolean v : val )
-				writeBoolean( v );
-		}
-
-		@Override
-		public void writeDoubleArray(double[] val) {
-			writeInt( val.length );
-			for ( double v : val )
-				writeDouble( v );
-		}
-
-		@Override
-		public void writeFloatArray(float[] val) {
-			writeInt( val.length );
-			for ( float v : val )
-				writeFloat( v );
-		}*/
 	}
 
 
@@ -254,83 +200,6 @@ public class UrlEncStreamFactory implements StreamFactory
 			String s = read(n);
 			return s;
 		}
-
-	
-		/*@Override
-		public int[] readIntArray() {
-			int n = readInt();
-			int[] buf = new int[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readInt();
-			return buf;
-		}
-
-
-		@Override
-		public long[] readLongArray() {
-			int n = readInt();
-			long[] buf = new long[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readLong();
-			return buf;
-		}
-
-
-		@Override
-		public short[] readShortArray() {
-			int n = readInt();
-			short[] buf = new short[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readShort();
-			return buf;
-		}
-
-
-		@Override
-		public byte[] readByteArray() {
-			int n = readByte();
-			byte[] buf = new byte[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readByte();
-			return buf;
-		}
-
-
-		@Override
-		public char[] readCharArray() {
-			String s = readString();
-			return s.toCharArray();
-		}
-
-
-		@Override
-		public boolean[] readBooleanArray() {
-			int n = readInt();
-			boolean[] buf = new boolean[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readBoolean();
-			return buf;
-		}
-
-
-		@Override
-		public double[] readDoubleArray() {
-			int n = readInt();
-			double[] buf = new double[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readDouble();
-			return buf;
-		}
-
-
-		@Override
-		public float[] readFloatArray() {
-			int n = readInt();
-			float[] buf = new float[n];
-			for ( int i = 0; i < n; i++ )
-				buf[i] = readFloat();
-			return buf;
-		}*/
 	}
 
 

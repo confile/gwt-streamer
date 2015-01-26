@@ -1,7 +1,6 @@
 package com.googlecode.gwtstreamer.client;
 
-import com.googlecode.gwtstreamer.client.impl.StreamerInternal;
-import com.googlecode.gwtstreamer.client.impl.UrlEncStreamFactory;
+import com.googlecode.gwtstreamer.client.impl.Base64PackedStreamFactory;
 
 import java.util.*;
 
@@ -12,7 +11,7 @@ import java.util.*;
 public class StreamerConfig {
     private SortedSet<String> registeredNames = new TreeSet<String>();
     private SortedMap<Class<?>,Streamer> registeredStreamers = new TreeMap<Class<?>,Streamer>();
-    private StreamFactory streamFactory = new UrlEncStreamFactory();
+    private StreamFactory streamFactory = new Base64PackedStreamFactory();
 
     /**
      * Creates default configuration

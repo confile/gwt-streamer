@@ -190,14 +190,16 @@ public final class WriteContext extends Context implements StreamFactory.Writer
 
 
 	private void writePacked( int tag, int val ) {
-		// 0x1F = 00011111
+		// 0x1F = 00011111, 0x7=00000111
+		// if unsigned(val) >= 32 (has more that lowest 5 bits equals to 00011111)
 		if ((val & ~0x1F) != 0 && val != 0x1F) {
-			// unpacked value
-			// 0x7=00000111
+			// writing unpacked value:
+			// lowest 3 bits = tag, highest 5 bits = 11111
 			out.writeByte((byte)((~0x7) | tag));
 			out.writeInt(val);
 		} else {
 			// packed value
+			// lowest 3 bits = tag, highest 5 bits = val
 			out.writeByte((byte)((val<<3) | tag));
 		}
 	}
@@ -252,6 +254,6 @@ public final class WriteContext extends Context implements StreamFactory.Writer
 	 * @return serialized data.
 	 */
 	public String getData() {
-		return out.toString();
+		return out.getData();
 	}
 }

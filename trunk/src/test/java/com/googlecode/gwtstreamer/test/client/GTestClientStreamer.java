@@ -14,7 +14,7 @@ import com.googlecode.gwtstreamer.client.StreamerException;
 import com.googlecode.gwtstreamer.test.client.shared.*;
 import com.googlecode.gwtstreamer.test.client.shared.TypedArray.MyEnum;
 
-public class GwtTestClientStreamer extends GWTTestCase
+public class GTestClientStreamer extends GWTTestCase
 {
 	@Override
 	public String getModuleName() {
