@@ -53,7 +53,9 @@ public class Base64PackedStreamFactory implements StreamFactory
             int sx = 0;
             if (v < 0) {
                 sx |= 0x10;         // sign bit, 0x10 = 10000
-                v = -v;             // invert value
+                v = ~v;             // change sign
+                v++;
+                v = ~(~v);		    // JS overflow check
             }
             sx |= (v & 0x0F);       // write lowest 4 bits, 0x0F = 1111
             v >>>= 4;               // shift v to the left by 4 bits
@@ -138,7 +140,7 @@ public class Base64PackedStreamFactory implements StreamFactory
             int sx = 0;
             if (v < 0) {
                 sx |= 0x10;         // sign bit, 0x10 = 10000
-                v = -v;             // invert value
+                v = -v;             // change sign (JS emulates longs)
             }
             sx |= (v & 0x0F);       // write lowest 4 bits, 0x0F = 1111
             v >>>= 4;               // shift v to the left by 4 bits
@@ -241,9 +243,11 @@ public class Base64PackedStreamFactory implements StreamFactory
                 v |= v1 << 4;
             }
 
-            if ( sign )
-                //v |= 0x80000000;    // set sign bit
-                v = -v;               // invert value
+            if ( sign ) {
+                v = ~v;             // change sign
+                v++;
+                v = ~(~v);		    // JS overflow check
+            }
 
             return v;
         }
@@ -315,8 +319,7 @@ public class Base64PackedStreamFactory implements StreamFactory
             }
 
             if ( sign )
-                //v |= 0x80000000;    // set sign bit
-                v = -v;         // invert value
+                v = -v;         // invert value (JS emulates longs)
 
             return v;
         }

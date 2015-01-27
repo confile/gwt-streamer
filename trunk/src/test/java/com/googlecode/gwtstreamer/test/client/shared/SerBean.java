@@ -8,7 +8,7 @@ import com.googlecode.gwtstreamer.client.Streamable;
 public class SerBean extends NonSerBean implements Streamable
 {
 	private int b;		// hiding superclass variable
-	private String c;
+	private String c = null;
 	
 	public SerBean() {
 		super( 0, null );

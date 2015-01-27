@@ -64,6 +64,10 @@ public class TestStreamFactory extends TestCase
                 dd.add(Math.random());
             dd.add(Double.MAX_VALUE);
             dd.add(Double.MIN_VALUE);
+            dd.add(Double.MIN_NORMAL);
+            dd.add(Double.NaN);
+            dd.add(Double.NEGATIVE_INFINITY);
+            dd.add(Double.POSITIVE_INFINITY);
             check(dd);
 
             // check floats
@@ -72,6 +76,10 @@ public class TestStreamFactory extends TestCase
                 ff.add((float)Math.random());
             ff.add(Float.MAX_VALUE);
             ff.add(Float.MIN_VALUE);
+            ff.add(Float.MIN_NORMAL);
+            ff.add(Float.NaN);
+            ff.add(Float.NEGATIVE_INFINITY);
+            ff.add(Float.POSITIVE_INFINITY);
             check(ff);
 
             // check strings
@@ -110,7 +118,6 @@ public class TestStreamFactory extends TestCase
 
             String buf = out.getData();
             log(buf);
-            List<Object> list1 = new ArrayList<Object>(list.size());
             StreamFactory.Reader in = streamFactory.createReader(buf);
 
             for (Object o : list) {
@@ -129,16 +136,29 @@ public class TestStreamFactory extends TestCase
                     o1 = in.readBoolean();
                 else if (o.getClass() == String.class)
                     o1 = in.readString();
-                else if (o.getClass() == Double.class)
+                else if (o.getClass() == Double.class) {
                     o1 = in.readDouble();
-                else if (o.getClass() == Float.class)
+                    if ( ((Double)o1).isNaN() ) {
+                        assertTrue( ((Double)o).isNaN() );
+                        continue;
+                    } else if ( !((Double)o1).isInfinite() ) {
+                        assertTrue(((Double) o).doubleValue() - ((Double) o1).doubleValue() < 0.0001d);
+                        o1 = o;
+                    }
+                } else if (o.getClass() == Float.class) {
                     o1 = in.readFloat();
-                else
+                    if ( ((Float)o1).isNaN() ) {
+                        assertTrue( ((Float)o).isNaN() );
+                        continue;
+                    } else if (!((Float)o1).isInfinite() ) {
+                        assertTrue(((Float) o).floatValue() - ((Float) o1).floatValue() < 0.0001f);
+                        o1 = o;
+                    }
+                } else
                     fail("Type is not allowed: " + o.getClass());
-                list1.add(o1);
-            }
 
-            assertEquals(list, list1);
+                assertEquals(o, o1);
+            }
         }
     }
 
