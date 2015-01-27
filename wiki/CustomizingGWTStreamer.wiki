@@ -8,7 +8,7 @@ StreamerConfig config = ...
 // ...
 Streamer.applyConfig(config);
 }}}
-Serialized data may only be interchanged between streamers that have the same configuration. It means that if you try to de-serialize data with a Streamer that configured differently that a Streamer you used for serialization, a StreamerException will be thrown. A special hash value is passed to output stream to identify a version of configuration of the Streamer used to serialize data. You may obtain a version hash value using Streamer.getConfigVersion():
+Serialized data may only be interchanged between streamers that have the same configuration. It means that if you try to de-serialize data with a Streamer that configured differently that a Streamer you used for serialization, a `StreamerException` will be thrown. A special hash value is passed to output stream to identify a version of configuration of the Streamer used to serialize data. You may obtain a version hash value using `Streamer.getConfigVersion()`:
 {{{
 Streamer.applyConfig(config);
 int ver = Streamer.getConfigVersion();
@@ -20,7 +20,8 @@ assert ver == config.getVersion();
 To reduce the size of output data Streamer serializes the names of classes and packages only once per object graph. All subsequent occurences of package or class name will be substituted by a short reference. However you may initially tell to Streamer the names of packages that contain your Streamable classes or the whole names of Streamable classes.
 {{{
 StreamerConfig config = ...
-// you only need to register a largest package, all super packages be registered automatically. The names of all classes that start with  'com.mycompany.project.client.beans' will be cut by this prefix.
+// you only need to register a largest package, all super packages be registered automatically
+// the names of all classes that start with  'com.mycompany.project.client.beans' will be cut by this prefix
 config.registerName("com.mycompany.project.client.beans");
 // register particular classes: a shortcuts will be used instead of class names
 config.registerName("com.mycompany.project.client.dto.SomeClass");
@@ -28,10 +29,51 @@ config.registerName("com.mycompany.project.client.dto.DtoClass$NestedClass");
 config.registerClass(com.mycompany.project.client.beans.MyClass.class);
 }}}
 
+== Custom streamers ==
+
+To register custom streamers:
+{{{
+StreamerConfig config = ...
+config.registerStreamer(MyClass.class, new MyClassStreamer());
+}}}
+See also: [CustomStreamer Creating custom streamers]
+
+== Change serialization format ==
+
+GWT Streamer supports various output formats. To change format a StreamFactory object must be set on the configuration object:
+{{{
+StreamerConfig config = ...
+config.setStreamFactory(new PrintableStreamFactory());
+}}}
+These are some predefined StreamFactories:
+  * `Base64PackedStreamFactory` (default) - optimized Base64 encoding
+  * `Base64StreamFactory` - raw Base64 encoding
+  * `UrlEncodedStreamFactory` - string-based format with URL encoding
+  * `PrintableStreamFactory` - string-based format (good for debug)
+You also may create and register your own StreamFactory and implement Reader and Writer interfaces for I/O.
+
 == Using Streamer at server side ==
 
 Take a special notice when configuring Streamer at server side as of it's singleton nature. The best way to put configuration code is in servlet static methods or somewhere in the initialization part.
 
-StreamerFactory
+To provide a configured singleton Streamer instance in IoC containers you may use `StreamerFactory` object.
 
 *Note!* Your client and server must be configured the same way if you want to interchange data between them.
+
+== Security considerations ==
+
+How does a data manipulation at client side can affect a server-side?
+
+=== Corrupted data ===
+
+GWT Streamer guarantees that during de-serialization an object graph will be re-created or StreamerException will be thrown. However it does not guarantee that the data in object graph is correct in the sense of your business application. Your business logic must perform additional checks of the data received from the client side.
+
+=== Maximum message size ===
+
+GWT Streamer does not control a size of message. An atack with a huge amount of serialized data can provoke OutOfMemoryError at server side if the message size is not controlled by underlying platform.
+
+=== Injecting of classes that are out of business scope ===
+
+GWT Streamer controls that de-serialized classes must be one of predefined classes (java.lang.String, etc...) or an instance of Streamable interface. Thus it is difficult to acquire an instance of undesired class at server side (while you are not using Streamable interface outside of your business scope).
+
+With GWT Streamer it is not possible to inject a class initialization by manipulating it's format.
