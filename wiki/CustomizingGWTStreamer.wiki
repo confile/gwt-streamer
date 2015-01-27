@@ -1,0 +1,37 @@
+#summary Customizing GWT Streamer.
+
+= Introduction =
+
+Custom GWT Streamer configuration may be applied via StreamerConfig object:
+{{{
+StreamerConfig config = ...
+// ...
+Streamer.applyConfig(config);
+}}}
+Serialized data may only be interchanged between streamers that have the same configuration. It means that if you try to de-serialize data with a Streamer that configured differently that a Streamer you used for serialization, a StreamerException will be thrown. A special hash value is passed to output stream to identify a version of configuration of the Streamer used to serialize data. You may obtain a version hash value using Streamer.getConfigVersion():
+{{{
+Streamer.applyConfig(config);
+int ver = Streamer.getConfigVersion();
+assert ver == config.getVersion();
+}}}
+
+== Specifying names of classes/packages ==
+
+To reduce the size of output data Streamer serializes the names of classes and packages only once per object graph. All subsequent occurences of package or class name will be substituted by a short reference. However you may initially tell to Streamer the names of packages that contain your Streamable classes or the whole names of Streamable classes.
+{{{
+StreamerConfig config = ...
+// you only need to register a largest package, all super packages be registered automatically. The names of all classes that start with  'com.mycompany.project.client.beans' will be cut by this prefix.
+config.registerName("com.mycompany.project.client.beans");
+// register particular classes: a shortcuts will be used instead of class names
+config.registerName("com.mycompany.project.client.dto.SomeClass");
+config.registerName("com.mycompany.project.client.dto.DtoClass$NestedClass");
+config.registerClass(com.mycompany.project.client.beans.MyClass.class);
+}}}
+
+== Using Streamer at server side ==
+
+Take a special notice when configuring Streamer at server side as of it's singleton nature. The best way to put configuration code is in servlet static methods or somewhere in the initialization part.
+
+StreamerFactory
+
+*Note!* Your client and server must be configured the same way if you want to interchange data between them.
