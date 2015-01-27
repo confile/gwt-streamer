@@ -40,7 +40,7 @@ config.registerStreamer( MyObject.class, new MyCustomStreamer() );
 ...
 Streamer.applyConfig(config);
 }}}
-See also: CustomizingGWTStreamer
+See also: [CustomizingGWTStreamer]
 
 You may also extend one of predefined implementations of streamers:
   * `ArrayStreamer` for arrays
