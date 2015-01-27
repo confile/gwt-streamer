@@ -67,6 +67,15 @@ public class StreamerConfig {
         this.registeredStreamers.putAll(registeredStreamers);
     }
 
+    /**
+     * Register custom streamer
+     * @param clazz class that requires custom serialization
+     * @param streamer an instance of streamer implementation
+     */
+    public void registerStreamer(Class<?> clazz, Streamer streamer) {
+        this.registeredStreamers.put(clazz, streamer);
+    }
+
     public StreamFactory getStreamFactory() {
         return streamFactory;
     }
