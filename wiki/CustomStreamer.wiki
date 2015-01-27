@@ -8,38 +8,39 @@ Create a class that extends `Streamer` and redefine `readObject()` and `writeObj
 {{{
 public class MyCustomStreamer extends Streamer {
     @Override
-    public void writeObject( Object obj, WriteContext ctx, Writer out ) {
+    public void writeObject( Object obj, WriteContext ctx ) {
         // save object identity to avoid reference duplication within the same graph
         ctx.addRef( obj );
         // write object fields
         MyObject mo = (MyObject) obj;
-        out.writeInt( mo.intField );
-        out.writeString( mo.stringField );
-        get().writeObject( mo.objectField, ctx, out );
+        ctx.writeInt( mo.intField );
+        ctx.writeString( mo.stringField );
+        ctx.writeObject( mo.objectField );
     }
 
     @Override
-    public Object readObject( ReadContext ctx, Reader in )
+    public Object readObject( ReadContext ctx )
     {
         // create object
         MyObject mo = ...
         // add identity to restore serialized references properly
         ctx.addRef( mo );
         // reading fields
-        mo.intField = in.readInt();
-        mo.stringField = in.readString();
-        mo.objectField = get().readObject( ctx, in );
+        mo.intField = ctx.readInt();
+        mo.stringField = ctx.readString();
+        mo.objectField = ctx.readObject();
         return mo;
     }
 }
 }}}
-To use new streamer you must register it somewhere in the initialization part of your application:
+To use new streamer you must register it with custom streamer configuration somewhere in the initialization part of your application:
 {{{
+StreamerConfig config = ...
+config.registerStreamer( MyObject.class, new MyCustomStreamer() );
 ...
-Streamer.registerStreamer( MyObject.class, new MyCustomStreamer() );
-...
+Streamer.applyConfig(config);
 }}}
-*Note!* You must also register the same streamer at server side!
+See also: ConfiguringGWTStreamer
 
 You may also extend one of predefined implementations of streamers:
   * `ArrayStreamer` for arrays
