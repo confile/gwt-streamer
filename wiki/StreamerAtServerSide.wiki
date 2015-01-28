@@ -84,3 +84,7 @@ public Streamer getStreamer() {
 private Streamer streamer;
 ...
 }}}
+
+== Classpath and dependencies ==
+
+In JVM environment there is no need to any add GWT jar (gwt-user.jar, gwt-servlet.jar) to you classpath. The only dependency required is gwt-streamer.jar. 
