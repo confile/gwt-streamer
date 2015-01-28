@@ -1,6 +1,7 @@
 package com.googlecode.gwtstreamer.client.std;
 
 import com.googlecode.gwtstreamer.client.Streamer;
+import com.googlecode.gwtstreamer.client.StreamerException;
 import com.googlecode.gwtstreamer.client.impl.ReadContext;
 import com.googlecode.gwtstreamer.client.impl.WriteContext;
 
@@ -19,6 +20,8 @@ public abstract class MapStreamer extends Streamer {
 	public Object readObject( ReadContext ctx )
 	{
 		int length = ctx.readInt();
+		if (length > ctx.getSizeLimit())
+			throw new StreamerException("Map length exceeds stream size: "+length);
 		Map<Object,Object> obj = createMapInstance(length);
 		ctx.addObject(obj);
 		readObjectData( obj, ctx, length );

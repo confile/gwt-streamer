@@ -26,6 +26,9 @@ public class StreamerInternal
 	 */
 	public static Map<String,Streamer> INITIAL_STREAMERS = Collections.unmodifiableMap(Collections.<String, Streamer>emptyMap());
 
+	/** Restriction policy derived from StreamerConfig */
+	public static String classRestrictionPolicy;
+
 	private static Streamer rootStreamer = new Streamer() {};
 	private static ConcurrentHashMap<String,Streamer> streamers = new ConcurrentHashMap<String, Streamer>();
 	
@@ -53,6 +56,7 @@ public class StreamerInternal
 		final Class<?> clazz;
 		
 		try {
+			checkClassNamePolicy(className);
 			clazz = Class.forName( className );
 		} catch ( Exception ex ) {
 			//return null;
@@ -89,8 +93,34 @@ public class StreamerInternal
 		
 		return st == NULL ? null : st;
 	}
-		
-	
+
+
+	private static void checkClassNamePolicy(String className) {
+		if ( !className.startsWith( "[" ) ) {
+			// regular class
+			if (classRestrictionPolicy != null)
+				if (!className.matches(classRestrictionPolicy))
+					throw new StreamerException("Class name does not match to restriction policy: "+className);
+		} else {
+			// array
+			int dim = 1;
+			while ( className.charAt( dim ) == '[' )
+				dim++;
+
+			if (dim > 256)
+				throw new StreamerException("Array dimension limit is 256. Requested dimensions: "+dim);
+
+			if ( className.charAt(dim) == 'L' ) {
+				// array of objects
+				final String objectClassName = className.substring(dim + 1, className.length() - 1);
+				checkClassNamePolicy(objectClassName);
+			} else {
+				// array of primitives
+				//final char elem = className.charAt(dim);
+			}
+		}
+	}
+
 	private static Streamer createStructStreamerFor( final Class<?> clazz )
 	{
 		return new StructStreamer() {

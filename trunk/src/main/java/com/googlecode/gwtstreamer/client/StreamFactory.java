@@ -20,6 +20,7 @@ public interface StreamFactory {
 	
 	
 	public interface Reader {
+		public int getSizeLimit();
 		public boolean hasMore();
 		public int readInt();
 		public long readLong();

@@ -82,8 +82,12 @@ public class PrintableStreamFactory implements StreamFactory
 			end = str.indexOf( DELIMITER );
 			if ( end < 0 ) end = str.length();
 		}
-		
-		
+
+		@Override
+		public int getSizeLimit() {
+			return str.length();
+		}
+
 		public boolean hasMore() {
 			return start < str.length();
 		}
@@ -150,7 +154,7 @@ public class PrintableStreamFactory implements StreamFactory
 			String s = readNext();
 			
 			try {
-				return StreamerInternal.urlDecode(s).charAt( 0 );
+				return StreamerInternal.urlDecode(s).charAt(0);
 			} catch ( Exception ex ) {
 				throw new StreamerException( ex );
 			}

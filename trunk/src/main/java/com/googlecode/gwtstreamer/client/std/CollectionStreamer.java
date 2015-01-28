@@ -1,6 +1,7 @@
 package com.googlecode.gwtstreamer.client.std;
 
 import com.googlecode.gwtstreamer.client.Streamer;
+import com.googlecode.gwtstreamer.client.StreamerException;
 import com.googlecode.gwtstreamer.client.impl.ReadContext;
 import com.googlecode.gwtstreamer.client.impl.WriteContext;
 
@@ -20,6 +21,8 @@ public abstract class CollectionStreamer extends Streamer
 	public Object readObject( ReadContext ctx )
 	{
 		int length = ctx.readInt();
+		if (length > ctx.getSizeLimit())
+			throw new StreamerException("Collection length exceeds stream size: "+length);
 		Collection<Object> obj = createCollectionInstance(length);
 		ctx.addObject(obj);
 		readObjectData( obj, ctx, length );

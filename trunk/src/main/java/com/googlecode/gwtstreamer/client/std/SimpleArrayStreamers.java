@@ -1,6 +1,7 @@
 package com.googlecode.gwtstreamer.client.std;
 
 import com.googlecode.gwtstreamer.client.Streamer;
+import com.googlecode.gwtstreamer.client.StreamerException;
 import com.googlecode.gwtstreamer.client.impl.ReadContext;
 import com.googlecode.gwtstreamer.client.impl.WriteContext;
 
@@ -22,6 +23,8 @@ public class SimpleArrayStreamers {
 		public Object readObject( ReadContext ctx )
 		{
 			int n = ctx.readInt();
+			if (n > ctx.getSizeLimit())
+				throw new StreamerException("Array length exceeds stream size: "+n);
 			int[] buf = new int[n];
 			ctx.addObject(buf);
 			for ( int i = 0; i < n; i++ )
@@ -47,6 +50,8 @@ public class SimpleArrayStreamers {
 		public Object readObject( ReadContext ctx )
 		{
 			int n = ctx.readInt();
+			if (n > ctx.getSizeLimit())
+				throw new StreamerException("Array length exceeds stream size: "+n);
 			long[] buf = new long[n];
 			ctx.addObject(buf);
 			for ( int i = 0; i < n; i++ )
@@ -72,6 +77,8 @@ public class SimpleArrayStreamers {
 		public Object readObject( ReadContext ctx )
 		{
 			int n = ctx.readInt();
+			if (n > ctx.getSizeLimit())
+				throw new StreamerException("Array length exceeds stream size: "+n);
 			short[] buf = new short[n];
 			ctx.addObject(buf);
 			for ( int i = 0; i < n; i++ )
@@ -97,6 +104,8 @@ public class SimpleArrayStreamers {
 		public Object readObject( ReadContext ctx )
 		{
 			int n = ctx.readInt();
+			if (n > ctx.getSizeLimit())
+				throw new StreamerException("Array length exceeds stream size: "+n);
 			byte[] buf = new byte[n];
 			ctx.addObject(buf);
 			for ( int i = 0; i < n; i++ )
@@ -122,6 +131,8 @@ public class SimpleArrayStreamers {
 		public Object readObject( ReadContext ctx )
 		{
 			int n = ctx.readInt();
+			if (n > ctx.getSizeLimit())
+				throw new StreamerException("Array length exceeds stream size: "+n);
 			double[] buf = new double[n];
 			ctx.addObject(buf);
 			for ( int i = 0; i < n; i++ )
@@ -147,6 +158,8 @@ public class SimpleArrayStreamers {
 		public Object readObject( ReadContext ctx )
 		{
 			int n = ctx.readInt();
+			if (n > ctx.getSizeLimit())
+				throw new StreamerException("Array length exceeds stream size: "+n);
 			float[] buf = new float[n];
 			ctx.addObject(buf);
 			for ( int i = 0; i < n; i++ )
@@ -192,6 +205,8 @@ public class SimpleArrayStreamers {
 		public Object readObject( ReadContext ctx )
 		{
 			int n = ctx.readInt();
+			if (n > ctx.getSizeLimit())
+				throw new StreamerException("Array length exceeds stream size: "+n);
 			boolean[] buf = new boolean[n];
 			ctx.addObject(buf);
 			for ( int i = 0; i < n; i++ )
@@ -217,6 +232,8 @@ public class SimpleArrayStreamers {
 		public Object readObject( ReadContext ctx )
 		{
 			int n = ctx.readInt();
+			if (n > ctx.getSizeLimit())
+				throw new StreamerException("Array length exceeds stream size: "+n);
 			Object[] buf = new Object[n];
 			ctx.addObject(buf);
 			for ( int i = 0; i < n; i++ )
@@ -243,6 +260,8 @@ public class SimpleArrayStreamers {
 		public Object readObject( ReadContext ctx )
 		{
 			int n = ctx.readInt();
+			if (n > ctx.getSizeLimit())
+				throw new StreamerException("Array length exceeds stream size: "+n);
 			String[] buf = new String[n];
 			ctx.addObject(buf);
 			for ( int i = 0; i < n; i++ )

@@ -16,7 +16,12 @@ public class TestPackageServer extends TestCase
 	private void log( String s ) {
 		System.out.println( s );
 	}
-	
+
+	@Override
+	public void tearDown() throws Exception {
+		Streamer.get().applyConfig(new StreamerConfig());
+	}
+
 	public void testPackageNames()
 	{
 		StreamerConfig cfg = new StreamerConfig();

@@ -110,7 +110,11 @@ public final class ReadContext extends Context implements StreamFactory.Reader
 				if ( streamer == null )
 					throw new StreamerException( "Could not find streamer for class: " +className );
 
-				return streamer.readObject( this );
+				try {
+					return streamer.readObject(this);
+				} catch (Exception ex) {
+					throw new StreamerException("Error reading object: "+className, ex);
+				}
 			}
 		}
 	}
@@ -122,15 +126,15 @@ public final class ReadContext extends Context implements StreamFactory.Reader
 		int raw = in.readByte() & 0xFF;
 
 		// 0x7=00000111
-		// if (highest 5 bits of a byte = 11111
-		if ((raw & ~0x7) == (~0x7 & 0xFF)) {
+		// if (highest 5 bits of a byte = 00000
+		if ((raw & ~0x7) == 0) {
 			// read unpacked value
 			tagVal[0] = raw & 0x7;
 			tagVal[1] = in.readInt();
 		} else {
 			// read packed value
 			tagVal[0] = raw & 0x7;
-			tagVal[1] = (raw >> 3) & 0xFF;
+			tagVal[1] = ((raw >> 3) & 0xFF)-1;
 		}
 
 		return tagVal;
@@ -176,6 +180,14 @@ public final class ReadContext extends Context implements StreamFactory.Reader
 
 		return className;
 	}
+
+	/**
+	 * Get size limit for arrays and strings to protect from OutOfMemory attacks.
+	 * By default size limit is a length of input string.
+	 * @return size limit
+	 */
+	@Override
+	public int getSizeLimit() { return in.getSizeLimit(); }
 
 	@Override
 	public boolean hasMore() {

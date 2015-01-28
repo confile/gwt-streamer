@@ -80,6 +80,8 @@ public class Base64StreamFactory implements StreamFactory
 		public boolean hasMore() {
 			return count < buf.length;
 		}
+
+		public int size() { return buf.length; }
 	}
 	
 	
@@ -162,8 +164,13 @@ public class Base64StreamFactory implements StreamFactory
 			byte[] buf = Base64Util.decode( str );
 			in = new ByteBufferInput( buf );
 		}
-		
-		
+
+
+		@Override
+		public int getSizeLimit() {
+			return in.size();
+		}
+
 		public boolean hasMore() {
 			return in.hasMore();
 		}
@@ -224,6 +231,8 @@ public class Base64StreamFactory implements StreamFactory
 		/** String will be encoded and may contain any character */
 		public String readString() {
 			int l = readInt();
+			if (l > getSizeLimit())
+				throw new StreamerException("String length exceeds stream size: "+l);
 			byte[] buf = new byte[l];
 			for ( int i = 0; i < l; i++ )
 				buf[i] = (byte) in.read();

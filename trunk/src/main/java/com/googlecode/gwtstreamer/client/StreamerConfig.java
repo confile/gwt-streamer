@@ -12,6 +12,7 @@ public class StreamerConfig {
     private SortedSet<String> registeredNames = new TreeSet<String>();
     private SortedMap<Class<?>,Streamer> registeredStreamers = new TreeMap<Class<?>,Streamer>();
     private StreamFactory streamFactory = new Base64PackedStreamFactory();
+    private String classRestrictionPolicy;
 
     /**
      * Creates default configuration
@@ -97,6 +98,29 @@ public class StreamerConfig {
     public void registerClass(Class<?> clazz) {
         this.registeredNames.add( clazz.getName() );
     }
+
+    /**
+     * Get current class restriction policy
+     * @return regexp of allowed class names or null if policy is not set
+     */
+    public String getClassRestrictionPolicy() {
+        return classRestrictionPolicy;
+    }
+
+    /**
+     * Set class restriction policy to protect server side against protocol attacks that
+     * try to inject names of classes out of business scope.
+     * This only affects a server side and has no effect on client side.
+     * It does not change config version number and not needed to be specified on client side.
+     * Note! You do not need to add a standard classes like java.lang.String, java.util.ArrayList,
+     * arrays, etc. to your regexp.
+     * @param allowedClassesRegexp a regexp filter of allowed classes or null to disable
+     *                               class name check
+     */
+    public void setClassRestrictionPolicy(String allowedClassesRegexp) {
+        this.classRestrictionPolicy = allowedClassesRegexp;
+    }
+
 
     /**
      * Return current version of configuration. A version number is a hash that depends of registered names,

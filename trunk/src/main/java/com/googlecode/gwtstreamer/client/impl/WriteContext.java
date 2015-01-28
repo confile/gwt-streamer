@@ -73,7 +73,7 @@ public final class WriteContext extends Context implements StreamFactory.Writer
 	{
 		if ( obj == null ) {
 			// write null (empty string)
-			out.writeByte((byte) NULL);
+			writePacked(NULL,0);
 		} else {
 			final Integer refIdx = getObjectIdentity(obj);
 
@@ -180,7 +180,7 @@ public final class WriteContext extends Context implements StreamFactory.Writer
 				String restString = className.substring(closestClassName.length());
 				out.writeString(restString);
 			} else {
-				out.writeByte((byte) STR_DEF);
+				writePacked(STR_DEF, 0);
 				out.writeString(className);
 			}
 		}
@@ -194,12 +194,13 @@ public final class WriteContext extends Context implements StreamFactory.Writer
 		// if unsigned(val) >= 32 (has more that lowest 5 bits equals to 00011111)
 		if ((val & ~0x1F) != 0 && val != 0x1F) {
 			// writing unpacked value:
-			// lowest 3 bits = tag, highest 5 bits = 11111
-			out.writeByte((byte)((~0x7) | tag));
+			// lowest 3 bits = tag, highest 5 bits = 00000
+			out.writeByte((byte)tag);
 			out.writeInt(val);
 		} else {
 			// packed value
 			// lowest 3 bits = tag, highest 5 bits = val
+			val++;
 			out.writeByte((byte)((val<<3) | tag));
 		}
 	}

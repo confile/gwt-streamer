@@ -224,6 +224,11 @@ public class Base64PackedStreamFactory implements StreamFactory
             return ABC_TO_INT[buf.charAt(idx++)];
         }
 
+        @Override
+        public int getSizeLimit() {
+            return buf.length();
+        }
+
         public boolean hasMore() {
             return idx < buf.length();
         }
@@ -352,6 +357,8 @@ public class Base64PackedStreamFactory implements StreamFactory
         /** String will be encoded and may contain any character */
         public String readString() {
             int l = readUnsignedPackedInt();
+            if (l > getSizeLimit())
+                throw new StreamerException("String length exceeds stream size: "+l);
             byte[] buf = new byte[l];
             readByteArray(buf);
             try {

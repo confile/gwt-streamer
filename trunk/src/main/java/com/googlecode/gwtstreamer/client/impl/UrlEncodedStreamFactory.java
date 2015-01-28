@@ -95,7 +95,12 @@ public class UrlEncodedStreamFactory implements StreamFactory
 			return s;
 		}
 
-		
+
+		@Override
+		public int getSizeLimit() {
+			return str.length();
+		}
+
 		public boolean hasMore() {
 			return idx < str.length();
 		}
@@ -197,6 +202,8 @@ public class UrlEncodedStreamFactory implements StreamFactory
 		public String readString()
 		{
 			int n = readInt();
+			if (n > getSizeLimit())
+				throw new StreamerException("String length exceeds stream size: "+n);
 			String s = read(n);
 			return s;
 		}

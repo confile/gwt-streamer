@@ -6,6 +6,7 @@ import java.util.*;
 
 import com.googlecode.gwtstreamer.client.impl.*;
 import com.googlecode.gwtstreamer.client.std.CollectionStreamers;
+import com.googlecode.gwtstreamer.client.std.ObjectStreamer;
 import com.googlecode.gwtstreamer.client.std.SimpleArrayStreamers.BooleanArrayStreamer;
 import com.googlecode.gwtstreamer.client.std.SimpleArrayStreamers.ByteArrayStreamer;
 import com.googlecode.gwtstreamer.client.std.SimpleArrayStreamers.CharArrayStreamer;
@@ -77,45 +78,45 @@ public abstract class Streamer
 		// add GWT streamers
 		streamers.putAll(StreamerInternal.INITIAL_STREAMERS);
 
-		// add default streamers
-		registerStreamer(Integer.class, new IntegerStreamer());
-		registerStreamer( Short.class, new ShortStreamer() );
-		registerStreamer( Byte.class, new ByteStreamer() );
-		registerStreamer( Long.class, new LongStreamer() );
+		// add default streamers (in order from most frequent to less frequent)
+		// first 15 objects will have a shortest class reference (1-byte)
+		registerStreamer( Object.class, new ObjectStreamer() );
+		registerStreamer( String.class, new StringStreamer() );
+		registerStreamer( Integer.class, new IntegerStreamer() );
+		registerStreamer( Boolean.class, new BooleanStreamer() );
 		registerStreamer( Double.class, new DoubleStreamer() );
 		registerStreamer( Float.class, new FloatStreamer() );
-		
+		registerStreamer( Long.class, new LongStreamer() );
+		registerStreamer( Byte.class, new ByteStreamer() );
+		registerStreamer( Short.class, new ShortStreamer() );
 		registerStreamer( Character.class, new CharStreamer() );
-		registerStreamer( Boolean.class, new BooleanStreamer() );
-		registerStreamer( String.class, new StringStreamer() );
+
 		registerStreamer( Date.class, new DateStreamer() );
 		registerStreamer( BigInteger.class, new BigIntegerStreamer() );
 		registerStreamer( BigDecimal.class, new BigDecimalStreamer() );
-		
+
+		registerStreamer( ArrayList.class, new CollectionStreamers.ArrayListStreamer() );
+		registerStreamer( HashMap.class, new CollectionStreamers.HashMapStreamer() );
+		registerStreamer( HashSet.class, new CollectionStreamers.HashSetStreamer() );
+		registerStreamer( TreeSet.class, new CollectionStreamers.TreeSetStreamer() );
+		registerStreamer( TreeMap.class, new CollectionStreamers.TreeMapStreamer()) ;
+		registerStreamer( LinkedHashMap.class, new CollectionStreamers.LinkedHashMapStreamer()) ;
+		registerStreamer( LinkedHashSet.class, new CollectionStreamers.LinkedHashSetStreamer() );
+		registerStreamer( LinkedList.class, new CollectionStreamers.LinkedListStreamer() );
+		registerStreamer( Vector.class, new CollectionStreamers.VectorStreamer() );
+		registerStreamer( IdentityHashMap.class, new CollectionStreamers.IdentityHashMapStreamer() );
+
+		// array class names are not cached
 		registerStreamer( int[].class, new IntArrayStreamer() );
 		registerStreamer( byte[].class, new ByteArrayStreamer() );
+		registerStreamer( char[].class, new CharArrayStreamer() );
+		registerStreamer( boolean[].class, new BooleanArrayStreamer() );
 		registerStreamer( short[].class, new ShortArrayStreamer() );
 		registerStreamer( long[].class, new LongArrayStreamer() );
 		registerStreamer( double[].class, new DoubleArrayStreamer() );
 		registerStreamer( float[].class, new FloatArrayStreamer() );
-		registerStreamer( char[].class, new CharArrayStreamer() );
-		registerStreamer( boolean[].class, new BooleanArrayStreamer() );
-		registerStreamer( Object[].class, new ObjectArrayStreamer() );
 		registerStreamer( String[].class, new StringArrayStreamer() );
-		
-		registerStreamer( ArrayList.class, new CollectionStreamers.ArrayListStreamer() );
-		registerStreamer( LinkedList.class, new CollectionStreamers.LinkedListStreamer() );
-		registerStreamer( HashSet.class, new CollectionStreamers.HashSetStreamer() );
-		registerStreamer( LinkedHashSet.class, new CollectionStreamers.LinkedHashSetStreamer() );
-		registerStreamer( TreeSet.class, new CollectionStreamers.TreeSetStreamer() );
-		registerStreamer( Vector.class, new CollectionStreamers.VectorStreamer() );
-		registerStreamer( HashMap.class, new CollectionStreamers.HashMapStreamer() );
-		registerStreamer( IdentityHashMap.class, new CollectionStreamers.IdentityHashMapStreamer() );
-		registerStreamer( LinkedHashMap.class, new CollectionStreamers.LinkedHashMapStreamer() );
-		registerStreamer( TreeMap.class, new CollectionStreamers.TreeMapStreamer() );
-
-		initWriteCtx.addClassNameString(Object.class.getName());
-		initReadCtx.addClassNameString(Object.class.getName());
+		registerStreamer( Object[].class, new ObjectArrayStreamer() );
 
 		// add custom class names
 		for (String s : config.getRegisteredNames()) {
@@ -128,6 +129,7 @@ public abstract class Streamer
 			registerStreamer(e.getKey(), e.getValue());
 
 		configVersion = config.getVersion();
+		StreamerInternal.classRestrictionPolicy = config.getClassRestrictionPolicy();
 	}
 
 	private static void registerStreamer(Class<?> clazz, Streamer streamer) {

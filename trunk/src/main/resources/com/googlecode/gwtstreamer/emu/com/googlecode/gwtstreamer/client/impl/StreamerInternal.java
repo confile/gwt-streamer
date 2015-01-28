@@ -18,6 +18,9 @@ public class StreamerInternal
 	 */
 	public static Map<String,Streamer> INITIAL_STREAMERS;
 
+	/** Class restriction policy derived from StreamerConfig */
+	public static String classRestrictionPolicy;
+
 	private static Streamer rootStreamer = GWT.create( Streamer.class );
 	
 	public static Streamer getRootStreamer() {
