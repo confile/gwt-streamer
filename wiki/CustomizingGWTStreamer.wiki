@@ -54,7 +54,8 @@ You also may create and register your own `StreamFactory` and implement Reader a
 
 = Configuring Streamer at server side =
 
-Take a special notice when configuring Streamer at server side as of it's singleton nature. The best way to put configuration code is in servlet static methods or somewhere in the initialization part.
+By server side we mean a full JVM hosted environment: standalone java process, servlet container, application server, etc.
+Take a special notice when configuring Streamer at server side as of it's singleton nature. The best way is to put configuration code to servlet static methods or somewhere in the initialization part controlling that GWT Streamer will not be configured twice.
 
 To provide a configured singleton Streamer instance in IoC containers you may use `StreamerFactory` object.
 
