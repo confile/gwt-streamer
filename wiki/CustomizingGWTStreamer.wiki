@@ -2,7 +2,7 @@
 
 = Introduction =
 
-Custom GWT Streamer configuration may be applied via StreamerConfig object:
+Custom GWT Streamer configuration may be applied via `StreamerConfig` object:
 {{{
 StreamerConfig config = ...
 // ...
@@ -40,19 +40,19 @@ See also: [CustomStreamer Creating custom streamers]
 
 == Change serialization format ==
 
-GWT Streamer supports various output formats. To change format a StreamFactory object must be set on the configuration object:
+GWT Streamer supports various output formats. To change format a `StreamFactory` object must be set on the configuration object:
 {{{
 StreamerConfig config = ...
 config.setStreamFactory(new PrintableStreamFactory());
 }}}
-These are some predefined StreamFactories:
+These are some predefined `StreamFactories`:
   * `Base64PackedStreamFactory` (default) - optimized Base64 encoding
   * `Base64StreamFactory` - raw Base64 encoding
   * `UrlEncodedStreamFactory` - string-based format with URL encoding
   * `PrintableStreamFactory` - string-based format (good for debug)
-You also may create and register your own StreamFactory and implement Reader and Writer interfaces for I/O.
+You also may create and register your own `StreamFactory` and implement Reader and Writer interfaces for I/O.
 
-== Using Streamer at server side ==
+=== Configuring Streamer at server side ===
 
 Take a special notice when configuring Streamer at server side as of it's singleton nature. The best way to put configuration code is in servlet static methods or somewhere in the initialization part.
 
@@ -60,17 +60,29 @@ To provide a configured singleton Streamer instance in IoC containers you may us
 
 *Note!* Your client and server must be configured the same way if you want to interchange data between them.
 
+== Restrict a scope of classes ==
+
+To protect server against attacks that inject classes out of your business scope you may set a regular expression that matches names of allowed classes.
+{{{
+StreamerConfig config = ...
+config.setClassRestrictionPolicy("com.mycompany.project.shared");
+}}}
+You do not need to add a standard classes like `java.lang.String`, `java.util.ArrayList`, arrays, etc. to your filterinf regular expression.
+This method only affects a server side and has no effect on client side. It does not change config version number and not needed to be set on client side. Setting null disables restriction policy check.
+
+See also: [SecurityConsiderations]
+
 == Security considerations ==
 
 How does a data manipulation at client side can affect a server-side?
 
 === Corrupted data ===
 
-GWT Streamer guarantees that during de-serialization an object graph will be re-created or StreamerException will be thrown. However it does not guarantee that the data in object graph is correct in the sense of your business application. Your business logic must perform additional checks of the data received from the client side.
+GWT Streamer guarantees that during de-serialization an object graph will be re-created or `StreamerException` will be thrown. However it does not guarantee that the data in object graph is correct in the sense of your business application. Your business logic must perform additional checks of the data received from the client side.
 
 === Maximum message size ===
 
-GWT Streamer does not control a size of message. An atack with a huge amount of serialized data can provoke OutOfMemoryError at server side if the message size is not controlled by underlying platform.
+GWT Streamer does not control a size of message. An atack with a huge amount of serialized data can provoke `OutOfMemoryError` at server side if the message size is not controlled by underlying platform.
 
 === Injecting of classes that are out of business scope ===
 
