@@ -52,18 +52,9 @@ These are some predefined `StreamFactories`:
   * `PrintableStreamFactory` - string-based format (good for debug)
 You also may create and register your own `StreamFactory` and implement Reader and Writer interfaces for I/O.
 
-= Configuring Streamer at server side =
-
-By server side we mean a full JVM hosted environment: standalone java process, servlet container, application server, etc.
-Take a special notice when configuring Streamer at server side as of it's singleton nature. The best way is to put configuration code to servlet static methods or somewhere in the initialization part controlling that GWT Streamer will not be configured twice.
-
-To provide a configured singleton Streamer instance in IoC containers you may use `StreamerFactory` object.
-
-*Note!* Your client and server must be configured the same way if you want to interchange data between them.
-
 == Restrict a scope of classes ==
 
-To protect server against attacks that inject classes out of your business scope you may set a regular expression that matches names of allowed classes.
+To protect your server against attacks that inject classes out of your business scope you may set a regular expression that matches names of allowed classes.
 {{{
 StreamerConfig config = ...
 config.setClassRestrictionPolicy("com.mycompany.project.shared");
