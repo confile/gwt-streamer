@@ -57,7 +57,7 @@ You also may create and register your own `StreamFactory` and implement Reader a
 To protect your server against attacks that inject classes out of your business scope you may set a regular expression that matches names of allowed classes.
 {{{
 StreamerConfig config = ...
-config.setClassRestrictionPolicy("com.mycompany.project.shared");
+config.setClassRestrictionPolicy("com\\.mycompany\\.project\\.shared\\..*");
 }}}
 You do not need to add a standard classes like `java.lang.String`, `java.util.ArrayList`, arrays, etc. to your filterinf regular expression.
 This method only affects a server side and has no effect on client side. It does not change config version number and not needed to be set on client side. Setting null disables restriction policy check.
