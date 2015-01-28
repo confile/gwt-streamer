@@ -2,19 +2,25 @@
 
 = Using Streamer at server side =
 
-A `Streamer.get()` method uses lazy initialization of streamers. It is thread-safe and can be used in multithreaded server environment.
-However if you are using [CustomStreamer custom streamers] or [ClassAliases class aliases] you must to register them before you start using serialization. The registration code is not thread-safe and must be called only once during server startup. There are several ways to do this:
-  * If you write your own servlet simply add a static block with your registration code to servlet class.
+By server side we mean a full JVM hosted environment: standalone java process, servlet container, application server, etc.
+
+By default you do not need any special pass to start using GWT Streamer at server side. If you need to set a [CustomizingGWTStreamer custom configuration] you must do it before start using GWT Streamer.
+
+*Note!* Your client and server must be configured the same way if you want to interchange data between them.
+
+Take a special notice when configuring Streamer at server multithreaded environment as of it's singleton nature. The best way is to put configuration code to servlet static methods or somewhere in the initialization part.
 {{{
 public class MyServlet extends HttpServlet {
     static {
-        Streamer.registerStreamer( MyClass.class, new MyClassStreamer() );
-        Streamer.createAlias( MyClass.class );
+        StreamerConfig config = new StreameConfig();
+        // set configuration parameters...
+        Streamer.applyConfig(config);
     }
     ...
 }
 }}}
-  * If you use third-party servlet you may register a servlet listener that performs static registration during web application startup.
+
+Or if you use a third-party servlet you may register a servlet listener that performs static initialization during web application startup.
 `web.xml`
 {{{
 <web-app>
@@ -29,70 +35,48 @@ public class MyServlet extends HttpServlet {
 {{{
 public class GWTStreamerInitializer implements ServletContextListener {
     static {
-        Streamer.registerStreamer( MyClass.class, new MyClassStreamer() );
-        Streamer.createAlias( MyClass.class );
+        StreamerConfig config = new StreameConfig();
+        // set configuration parameters...
+        Streamer.applyConfig(config);
     }
     @Override    
     public void contextInitialized(ServletContextEvent sce) {}
 }
 }}}
-  * In IoC container like Spring you may acquire configured singleton instance of `Streamer` created by `StreamerFactory` class. First register `com.nkdata.gwt.streamer.server.StreamerFactory` class as singleton factory for `Streamer` class.
-`applicationContext.xml`
-{{{
-...
-<bean id="streamerFactory" class="com.nkdata.gwt.streamer.server.StreamerFactory" singleton="true">
-    <constructor-arg>
-        <list>
-            <value>MyClass.class</value>
-        </list>
-    </constructor-arg>
-    <constructor-arg>
-        <props>
-            <prop key="MyClass">MyClassStreamer</prop>
-        </props>
-    </constructor-arg>
-</bean>
-<bean id="streamer" factory-bean="streamerFactory" factory-method="getInstance"/>
-...
-}}}
-Then use injection of `Streamer` instance instead of static call to `Streamer.get()`.
-{{{
-@Autowired
-private Streamer streamer;
-...
-MyObject myObject = ...
-String buf = streamer.toString( myObject );
-...
-}}}
-If you use annotation-driven configuration you may create a singleton instance of Streamer bean using @Bean annotation:
+
+In IoC container like Spring you may provide a configured singleton Streamer instance:
 {{{
 @Configuration
-public class MyConfiguration {
-    @Bean(scope=DefaultScopes.SINGLETON)
-    public Streamer configureStreamer() {
-        Streamer.registerStreamer( MyClass.class, new MyClassStreamer() );
-        Streamer.createAlias( MyClass.class );
-        return Streamer.get();
-    }
+public class MyAppConfig {
+   @Bean(scope=DefaultScopes.SINGLETON)
+   public Streamer gwtStreamer(){
+      StreamerConfig config = new StreameConfig();
+      // set configuration parameters...
+      Streamer.applyConfig(config);
+      return Streamer.get();
+   }
 }
 }}}
-Alternatively you may simply add a registration code as static block to your context configuration and continue using `Streamer.get()` in your code:
+Or using `StreamerFactory` object.
 {{{
 @Configuration
-public class MyConfiguration {
-    static {
-        Streamer.registerStreamer( MyClass.class, new MyClassStreamer() );
-        Streamer.createAlias( MyClass.class );
-    }
+public class MyAppConfig {
+   @Bean(scope=DefaultScopes.SINGLETON)
+   public StreamerFactory streamerFactory(){
+        StreamerConfig config = new StreameConfig();
+        // set configuration parameters...
+        return new StreamerFactory(config);
+   }
 }
 }}}
-  * In JEE6 container you may inject configured singleton instance of Streamer using CDI:
+In JEE container you may inject configured singleton instance of Streamer using CDI:
 {{{
 ...
 @Produces @ApplicationScoped
 public Streamer getStreamer() {
-    Streamer.registerStreamer( MyClass.class, new MyClassStreamer() );
-    Streamer.createAlias( MyClass.class );
+    StreamerConfig config = new StreameConfig();
+    // set configuration parameters...
+    Streamer.applyConfig(config);
     return Streamer.get();
 }
 ...
