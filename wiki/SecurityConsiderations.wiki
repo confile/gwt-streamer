@@ -24,5 +24,6 @@ Attacker could request string or array of huge length to provoke `OutOfMemory` o
 
 GWT Streamer controls that de-serialized classes must be one of predefined classes (`java.lang.String`, `java.util.ArrayList`, etc...) or an instance of Streamable interface. Thus it is difficult for attacker to acquire an instance of undesired class at server side (while you are not using Streamable interface somewhere outside of your business scope). However before this checks will be done a class resolution must be made. It means that an attacker theoretically could force your server to load every class from your classpath provoking various undesirable effects including `OutOfMemoryError` when there is no more space in JVM's `PermGen`.
 
-To protect server from these attacks you can configure your GWT Streamer with a class restriction policy specifying a regular expression that matches the classes of your business scope.
+To protect server from these attacks you can configure your GWT Streamer with a class restriction policy specifying a regular expression that matches the classes of your business scope using `StreamerConfig.setClassRestrictionPolicy()`
+
 See [CustomizingGWTStreamer Customizing GWT Streamer]
