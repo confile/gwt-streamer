@@ -1,0 +1,19 @@
+#summary Protecting GWT Streamer
+
+= Security considerations =
+
+How does a data manipulation at client side can affect a server-side?
+
+=== Corrupted data ===
+
+GWT Streamer guarantees that during de-serialization an object graph will be re-created or `StreamerException` will be thrown. However it does not guarantee that the data in object graph is correct in the sense of your business application. Your business logic must perform additional checks of the data received from the client side.
+
+=== Maximum message size ===
+
+GWT Streamer does not control a size of message. An atack with a huge amount of serialized data can provoke `OutOfMemoryError` at server side if the message size is not controlled by underlying platform.
+
+=== Injecting of classes that are out of business scope ===
+
+GWT Streamer controls that de-serialized classes must be one of predefined classes (java.lang.String, etc...) or an instance of Streamable interface. Thus it is difficult to acquire an instance of undesired class at server side (while you are not using Streamable interface outside of your business scope).
+
+With GWT Streamer it is not possible to inject a class initialization by manipulating it's format.
