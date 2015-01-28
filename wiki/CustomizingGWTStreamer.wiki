@@ -52,7 +52,7 @@ These are some predefined `StreamFactories`:
   * `PrintableStreamFactory` - string-based format (good for debug)
 You also may create and register your own `StreamFactory` and implement Reader and Writer interfaces for I/O.
 
-=== Configuring Streamer at server side ===
+= Configuring Streamer at server side =
 
 Take a special notice when configuring Streamer at server side as of it's singleton nature. The best way to put configuration code is in servlet static methods or somewhere in the initialization part.
 
@@ -71,21 +71,3 @@ You do not need to add a standard classes like `java.lang.String`, `java.util.Ar
 This method only affects a server side and has no effect on client side. It does not change config version number and not needed to be set on client side. Setting null disables restriction policy check.
 
 See also: [SecurityConsiderations]
-
-== Security considerations ==
-
-How does a data manipulation at client side can affect a server-side?
-
-=== Corrupted data ===
-
-GWT Streamer guarantees that during de-serialization an object graph will be re-created or `StreamerException` will be thrown. However it does not guarantee that the data in object graph is correct in the sense of your business application. Your business logic must perform additional checks of the data received from the client side.
-
-=== Maximum message size ===
-
-GWT Streamer does not control a size of message. An atack with a huge amount of serialized data can provoke `OutOfMemoryError` at server side if the message size is not controlled by underlying platform.
-
-=== Injecting of classes that are out of business scope ===
-
-GWT Streamer controls that de-serialized classes must be one of predefined classes (java.lang.String, etc...) or an instance of Streamable interface. Thus it is difficult to acquire an instance of undesired class at server side (while you are not using Streamable interface outside of your business scope).
-
-With GWT Streamer it is not possible to inject a class initialization by manipulating it's format.
