@@ -88,3 +88,8 @@ private Streamer streamer;
 == Classpath and dependencies ==
 
 In JVM environment there is no need to any add GWT jar (gwt-user.jar, gwt-servlet.jar) to you classpath. The only dependency required is gwt-streamer.jar. 
+
+*Warning!* Current version of GWT Streamer has an issue 
+https://code.google.com/p/gwt-streamer/issues/detail?id=3
+that throws ClassCastException when de-serializing object on runtimes with hierarchical class loaders.
+To work around this issue do not add gwt-streamer.jar to your server's classpath. Instead package and deploy it within your application's .war.
