@@ -2,13 +2,7 @@ package com.googlecode.gwtstreamer.rebind;
 
 
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 import com.google.gwt.core.ext.Generator;
 import com.google.gwt.core.ext.GeneratorContext;
@@ -18,6 +12,7 @@ import com.google.gwt.core.ext.typeinfo.*;
 import com.google.gwt.user.rebind.ClassSourceFileComposerFactory;
 import com.google.gwt.user.rebind.SourceWriter;
 import com.googlecode.gwtstreamer.client.Streamable;
+import com.googlecode.gwtstreamer.client.Streamer;
 import com.googlecode.gwtstreamer.client.StreamerConfig;
 import com.googlecode.gwtstreamer.client.StreamerException;
 import com.googlecode.gwtstreamer.client.impl.StreamerInternal;
@@ -118,6 +113,7 @@ public class StreamerGenerator extends Generator {
         }
 
         //int classIdNum = 0;
+        out.println( "private final static Map<String,Streamer> _INITIAL_STREAMERS;" );
         out.println( "static {" );
         out.indent();
 		out.println( "Map<String,Streamer> initStreamers = new HashMap<String,Streamer>();" );
@@ -305,12 +301,13 @@ public class StreamerGenerator extends Generator {
 	        }
         } 
 
-		out.println("StreamerInternal.INITIAL_STREAMERS = Collections.unmodifiableMap(initStreamers);");
+		out.println("_INITIAL_STREAMERS = Collections.unmodifiableMap(initStreamers);");
 		out.println("applyConfig(new StreamerConfig());");
         out.outdent();
         out.println( "}" );
-        
-        
+        out.println( "@Override protected Map<String,Streamer> initialStreamers() { " +
+                "return _INITIAL_STREAMERS; }" );
+
         out.commit(logger);
         return packageName + "." + streamerImplClassName;
     }

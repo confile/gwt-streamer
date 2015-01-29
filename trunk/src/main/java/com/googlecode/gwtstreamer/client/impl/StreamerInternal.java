@@ -57,7 +57,8 @@ public class StreamerInternal
 		
 		try {
 			checkClassNamePolicy(className);
-			clazz = Class.forName( className );
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            clazz = Class.forName(className, true ,cl);
 		} catch ( Exception ex ) {
 			//return null;
 			throw new StreamerException( "Class not found: "+className, ex );

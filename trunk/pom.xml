@@ -6,7 +6,7 @@
 
     <groupId>com.googlecode.gwt-streamer</groupId>
     <artifactId>gwt-streamer</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1-SNAPSHOT</version>
     <name>GWT-Streamer</name>
     <description>Serialization library for Google Web Toolkit</description>
     <url>https://code.google.com/p/gwt-streamer/</url>
